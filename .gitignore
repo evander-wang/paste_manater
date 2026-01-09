@@ -1,0 +1,52 @@
+# Flutter/Dart
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+pubspec.lock
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Testing
+.coverage
+.test_coverage.dart
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.*
+
+# Temporary files
+*.tmp
+*.temp
+specs/
+.specify/*
+.claude/
+.idea
+build/
+
+CLAUDE.md
+DEBUG_GUIDE.md
+FINAL_IMPLEMENTATION_SUMMARY.md
+FULL_IMPLEMENTATION_SUMMARY.md
+MVP_IMPLEMENTATION_SUMMARY.md
+QUICK_CHECK.md
+TESTING_GUIDE.md
+TESTING_SUMMARY.md
+UI_SIMPLIFICATION_SUMMARY.md

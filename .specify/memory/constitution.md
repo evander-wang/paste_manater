@@ -1,50 +1,151 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report:
+Version change: (initial) → 1.0.0
+Modified principles: N/A (initial version)
+Added sections: Core Principles (5 principles), Architecture Constraints, Development Workflow, Governance
+Removed sections: N/A
+Templates requiring updates:
+  ✅ constitution.md (this file)
+  ⚠ plan-template.md - verify "Constitution Check" aligns with new principles
+  ⚠ spec-template.md - ensure architecture constraints are captured in spec sections
+  ⚠ tasks-template.md - ensure testing task categorization reflects independent test requirement
+Follow-up TODOs: None
+-->
 
-## Core Principles
+# Paste 剪贴板管理器项目宪章
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+## 核心原则
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### I. 松耦合架构（不可妥协）
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+每个组件必须遵守最多 2 层嵌套深度。组件必须自包含且可独立测试。需要明确目的 - 不允许仅为了组织而创建的模块或抽象。
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+**理由**: 深层嵌套会导致紧耦合，使代码难以测试、维护和重构。2 层限制强制模块化设计，防止架构债务。
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+**执行标准**:
+- 超过 2 层嵌套的组件必须重构为独立模块
+- 超过 2 层的嵌套结构需要在设计文档中明确说明例外理由
+- 代码审查必须验证嵌套深度合规性
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### II. 独立单元测试（不可妥协）
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+所有核心功能必须拥有独立的单元测试，最低代码覆盖率为 80%。测试必须在实现之前编写（TDD），或在探索性工作之后立即编写。测试必须独立运行，不依赖外部依赖（文件系统、网络、系统服务）。
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+**理由**: 独立测试验证组件契约，支持安全重构，防止回归。隔离性确保快速反馈和可靠的 CI/CD。
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+**执行标准**:
+- 必须在 CI 中测量和报告测试覆盖率
+- 覆盖率低于 80% 的功能不能合并
+- 依赖外部系统的测试必须模拟/打桩
+- 每个 PR 必须包含新功能的测试
 
-## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+### III. 测试优先开发（不可妥协）
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+所有功能开发必须遵循 TDD：编写测试 → 获得批准 → 验证测试失败 → 实现 → 验证测试通过 → 重构。必须严格遵循红-绿-重构循环。
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**理由**: 测试优先设计产生更好的 API，防止过度工程化，并确保所有代码天然可测试。
+
+**执行标准**:
+- 没有对应测试的实现代码
+- 失败的测试必须阻止 PR 合并
+- 探索性工作必须随后添加测试
+
+### IV. macOS 原生用户体验
+
+所有面向用户的功能必须遵循 macOS 人机界面指南（HIG）。UI 必须具有 macOS 平台的原生感，使用标准控件、模式和交互。键盘快捷键必须在适用时与 macOS 约定对齐。
+
+**理由**: 原生感确保用户采用，降低学习曲线，并与 macOS 生态系统无缝集成。
+
+**执行标准**:
+- 设计审查必须验证 HIG 合规性
+- 键盘快捷键必须使用标准 macOS 修饰键（Cmd、Option、Cmd+Shift）
+- 视觉设计必须匹配 macOS 美学（SF Symbols、系统字体、原生颜色）
+
+### V. 简单性与 YAGNI 原则
+
+从简单开始，遵循 YAGNI（你不会需要它）原则。仅构建当前需求所需的内容。避免过早抽象和"以防万一"的功能。
+
+**理由**: 过早复杂性会产生维护负担。功能可以在证明必要时添加，但不必要的复杂性无法轻易移除。
+
+**执行标准**:
+- 每个新的抽象必须要求具体用例的正当理由
+- "面向未来"不是增加复杂性的有效理由
+- 代码审查必须质疑不必要的抽象
+
+## 架构约束
+
+### 技术栈
+
+- **UI 框架**: Flutter (Dart)
+- **平台**: macOS 10.15 (Catalina) 或更高版本
+- **存储**: 本地文件系统（用户数据目录）
+- **核心剪贴板功能无外部依赖**
+
+### 数据隐私
+
+- 剪贴板内容绝不能传输到外部服务
+- 所有数据存储仅限本地
+- 无可能暴露剪贴板内容的遥测或分析
+- 必须忽略安全应用程序（密码管理器）的剪贴板内容
+
+### 性能标准
+
+- 剪贴板捕获延迟：从复制操作到存储完成 100ms 内
+- UI 窗口打开：键盘快捷键触发后 200ms 内
+- 搜索响应：1000 条历史记录 300ms 内
+- 内存使用：1000 条历史记录时空闲状态低于 100MB
+
+### 安全与隐私
+
+- 应用必须遵守 macOS 剪贴板监控权限
+- 剪贴板内容访问必须对用户透明
+- 不得将剪贴板内容记录到外部系统
+- 尊重用户隐私：忽略密码管理器和安全应用程序的剪贴板内容
+
+## 开发工作流
+
+### 代码审查要求
+
+- 所有 PR 必须验证宪章合规性（嵌套深度、测试覆盖率、HIG 合规性）
+- 复杂性必须根据 YAGNI 原则进行正当性说明
+- 每个 PR 必须包含相应的测试
+- UI 更改必须包含审查的截图/视频
+
+### 测试门槛
+
+- 单元测试必须通过，最低 80% 覆盖率
+- 剪贴板捕获和分类的集成测试
+- 键盘快捷键和窗口管理的手动 UX 测试
+- 性能基准测试必须满足上述标准
+
+### 文档要求
+
+- README 必须包含设置和开发说明
+- 核心组件必须有内联文档说明目的
+- 重要的架构偏差必须记录架构决策
+
+## 治理
+
+### 修订流程
+
+- 宪章优于所有其他实践和指南
+- 修订需要理由文档、批准标准和现有代码的迁移计划
+- 版本遵循语义化版本控制（MAJOR.MINOR.PATCH）：
+  - MAJOR：向后不兼容的原则删除或重新定义
+  - MINOR：新原则或部分添加
+  - PATCH：澄清、措辞修复、非语义更改
+
+### 合规审查
+
+- 所有计划文档必须验证宪章合规性
+- 违规必须明确证明合理并记录
+- 超出标准模式的复杂性必须解释
+- 使用 CLAUDE.md 进行与宪章一致的运行时开发指导
+
+### 迁移策略
+
+- 宪章修订时，现有代码必须在 2 个冲刺内更新以合规
+- 暂时豁免的代码是临时的，必须有迁移票据
+- 新代码必须始终遵守当前宪章
+
+**版本**: 1.0.0 | **批准日期**: 2025-01-07 | **最后修订**: 2025-01-07
