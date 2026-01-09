@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import '../models/clipboard_item.dart';
@@ -8,7 +7,6 @@ import '../models/category.dart';
 import '../models/clipboard_history.dart' as models;
 import '../models/auto_capture_rule.dart';
 import '../services/storage_service.dart';
-import '../services/categorizer.dart';
 import '../services/category_detector.dart';
 
 /// 剪贴板监听服务
@@ -51,16 +49,6 @@ class ClipboardMonitor {
   /// 去重缓存（哈希 -> 最后见到的时间）
   final Map<String, DateTime> _recentHashes = {};
 
-  /// 批量保存计数
-  int _pendingSaveCount = 0;
-
-  /// 上次保存时间
-  DateTime? _lastSaveTime;
-
-  /// 最后一次复制操作的时间和内容（用于过滤自己的复制）
-  DateTime? _lastOwnCopyTime;
-  String? _lastOwnCopyContent;
-
   /// 是否有待处理的自己的复制操作（标志位，用于跳过下一次剪贴板检测）
   bool _isPendingOwnCopy = false;
 
@@ -96,10 +84,28 @@ class ClipboardMonitor {
       print('启动原生监听器失败: $e');
     }
 
+    // 初始化当前剪贴板状态（但不处理初始内容）
+    await _initializeCurrentState();
+
     // 开始轮询
     _monitorTimer = Timer.periodic(checkInterval, (_) async {
       await _checkClipboard();
     });
+  }
+
+  /// 初始化当前剪贴板状态（启动时调用，不处理初始内容）
+  Future<void> _initializeCurrentState() async {
+    try {
+      final result = await _platform.invokeMethod('getClipboardData');
+      if (result != null) {
+        final data = Map<String, dynamic>.from(result as Map);
+        _currentData = data['content'] as String?;
+        _currentChangeCount = data['changeCount'] as int?;
+        print('✅ 剪贴板监听已初始化（不记录启动时的现有内容）');
+      }
+    } catch (e) {
+      print('初始化剪贴板状态失败: $e');
+    }
   }
 
   /// 启动自动捕获监听（增强版）
@@ -246,27 +252,9 @@ class ClipboardMonitor {
     }
   }
 
-  /// 检查是否是自己的复制操作
-  bool _isOwnCopy(String content) {
-    if (_lastOwnCopyTime == null || _lastOwnCopyContent == null) {
-      return false;
-    }
-
-    // 检查时间窗口（1秒内）
-    final timeDiff = DateTime.now().difference(_lastOwnCopyTime!);
-    if (timeDiff > const Duration(seconds: 1)) {
-      return false;
-    }
-
-    // 检查内容是否匹配
-    return content == _lastOwnCopyContent;
-  }
-
   /// 标记自己的复制操作
   void markOwnCopy(String content) {
     _isPendingOwnCopy = true; // 设置标志位
-    _lastOwnCopyTime = DateTime.now();
-    _lastOwnCopyContent = content;
     print('📋 标记自己的复制操作（标志位已设置）: "${content.substring(0, content.length > 20 ? 20 : content.length)}..."');
   }
 

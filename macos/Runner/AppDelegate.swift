@@ -112,9 +112,8 @@ class ClipboardMonitorPlugin: NSObject, FlutterPlugin {
 class HotkeyPlugin: NSObject, FlutterPlugin {
   private var methodChannel: FlutterMethodChannel?
   private var hotkeyRef: EventHotKeyRef?
-  private var hotkeyCallback: (() -> Bool)?
+  private var eventHandlerRef: EventHandlerRef?
   private var mainWindow: NSWindow?
-  private var eventMonitor: Any?
   private var isWindowVisible = true  // 手动跟踪窗口可见性
 
   // 静态实例持有，防止被释放
@@ -235,11 +234,18 @@ class HotkeyPlugin: NSObject, FlutterPlugin {
   }
 
   private func unregisterHotkey(result: FlutterResult) {
+    // 移除事件处理器
+    if let handlerRef = eventHandlerRef {
+      RemoveEventHandler(handlerRef)
+      eventHandlerRef = nil
+    }
+
+    // 注销热键
     if let hotkeyRef = hotkeyRef {
       UnregisterEventHotKey(hotkeyRef)
       self.hotkeyRef = nil
     }
-    hotkeyCallback = nil
+
     result(nil)
   }
 
@@ -248,14 +254,16 @@ class HotkeyPlugin: NSObject, FlutterPlugin {
     modifiers: UInt32,
     callback: @escaping () -> Bool
   ) -> Bool {
-    // 移除旧的监听器和热键
-    if let monitor = eventMonitor {
-      NSEvent.removeMonitor(monitor)
-      eventMonitor = nil
-    }
+    // 移除旧的热键
     if let hotkeyRef = hotkeyRef {
       UnregisterEventHotKey(hotkeyRef)
       self.hotkeyRef = nil
+    }
+
+    // 移除旧的事件处理器
+    if let handlerRef = eventHandlerRef {
+      RemoveEventHandler(handlerRef)
+      eventHandlerRef = nil
     }
 
     // 定义热键类型和ID
@@ -277,9 +285,6 @@ class HotkeyPlugin: NSObject, FlutterPlugin {
       carbonModifiers |= UInt32(controlKey)
     }
 
-    // 保存回调
-    self.hotkeyCallback = callback
-
     // 注册热键
     var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
     let status = RegisterEventHotKey(
@@ -294,9 +299,11 @@ class HotkeyPlugin: NSObject, FlutterPlugin {
     if status == noErr {
       print("✅ Carbon 热键注册成功 (keyCode=\(keyCode), modifiers=\(carbonModifiers))")
 
-      // 安装事件处理器
-      let selfPtr = Unmanaged.passUnretained(self).toOpaque()
+      // 保存 self 引用（使用 passRetained 确保不会提前释放）
+      let selfPtr = Unmanaged.passRetained(self).toOpaque()
 
+      // 安装事件处理器并保存引用
+      var handlerRef: EventHandlerRef?
       let installStatus = InstallEventHandler(
         GetApplicationEventTarget(),
         { (nextHandler, theEvent, userData) -> OSStatus in
@@ -319,14 +326,17 @@ class HotkeyPlugin: NSObject, FlutterPlugin {
         1,
         &eventType,
         selfPtr,
-        nil
+        &handlerRef
       )
 
-      if installStatus == noErr {
-        print("✅ 事件处理器已安装")
+      if installStatus == noErr && handlerRef != nil {
+        self.eventHandlerRef = handlerRef
+        print("✅ 事件处理器已安装并保存引用")
         return true
       } else {
         print("❌ 事件处理器安装失败: \(installStatus)")
+        // 清理 self 引用
+        Unmanaged<HotkeyPlugin>.fromOpaque(selfPtr).release()
         return false
       }
     } else {
@@ -470,9 +480,9 @@ class HotkeyPlugin: NSObject, FlutterPlugin {
 
   func detach() {
     // 移除事件监听器
-    if let monitor = eventMonitor {
-      NSEvent.removeMonitor(monitor)
-      eventMonitor = nil
+    if let handlerRef = eventHandlerRef {
+      RemoveEventHandler(handlerRef)
+      eventHandlerRef = nil
     }
 
     // 移除通知观察者
