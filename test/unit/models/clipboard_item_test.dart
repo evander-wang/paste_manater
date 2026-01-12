@@ -131,5 +131,220 @@ void main() {
       expect(json1.containsKey('sourceApp'), isTrue);
       expect(json2.containsKey('sourceApp'), isFalse);
     });
+
+    group('置顶功能扩展 (T043)', () {
+      test('应该正确序列化置顶字段', () {
+        // Arrange
+        final item = ClipboardItem(
+          id: 'test-id',
+          content: 'test content',
+          type: ClipboardItemType.text,
+          category: Category.text,
+          timestamp: DateTime.parse('2026-01-12T10:00:00.000Z'),
+          hash: 'abc123',
+          size: 12,
+          pinned: true,
+          pinnedAt: DateTime.parse('2026-01-12T11:30:00.000Z'),
+        );
+
+        // Act
+        final json = item.toJson();
+
+        // Assert
+        expect(json['pinned'], true);
+        expect(json['pinnedAt'], '2026-01-12T11:30:00.000Z');
+      });
+
+      test('应该正确反序列化置顶字段', () {
+        // Arrange
+        final json = {
+          'id': 'test-id',
+          'content': 'test content',
+          'type': 'text',
+          'category': 'text',
+          'timestamp': '2026-01-12T10:00:00.000Z',
+          'hash': 'abc123',
+          'size': 12,
+          'pinned': true,
+          'pinnedAt': '2026-01-12T11:30:00.000Z',
+        };
+
+        // Act
+        final item = ClipboardItem.fromJson(json);
+
+        // Assert
+        expect(item.pinned, true);
+        expect(item.pinnedAt, DateTime.parse('2026-01-12T11:30:00.000Z'));
+      });
+
+      test('向后兼容:缺少pinned字段时应该默认为false', () {
+        // Arrange - 旧格式JSON,没有pinned字段
+        final json = {
+          'id': 'test-id',
+          'content': 'test content',
+          'type': 'text',
+          'category': 'text',
+          'timestamp': '2026-01-12T10:00:00.000Z',
+          'hash': 'abc123',
+          'size': 12,
+        };
+
+        // Act
+        final item = ClipboardItem.fromJson(json);
+
+        // Assert
+        expect(item.pinned, false);
+        expect(item.pinnedAt, null);
+      });
+
+      test('向后兼容:pinned为null时应该默认为false', () {
+        // Arrange - 旧格式JSON,pinned字段显式为null
+        final json = {
+          'id': 'test-id',
+          'content': 'test content',
+          'type': 'text',
+          'category': 'text',
+          'timestamp': '2026-01-12T10:00:00.000Z',
+          'hash': 'abc123',
+          'size': 12,
+          'pinned': null,
+        };
+
+        // Act
+        final item = ClipboardItem.fromJson(json);
+
+        // Assert
+        expect(item.pinned, false);
+        expect(item.pinnedAt, null);
+      });
+
+      test('应该正确序列化未置顶状态', () {
+        // Arrange
+        final item = ClipboardItem(
+          id: 'test-id',
+          content: 'test content',
+          type: ClipboardItemType.text,
+          category: Category.text,
+          timestamp: DateTime.parse('2026-01-12T10:00:00.000Z'),
+          hash: 'abc123',
+          size: 12,
+          pinned: false,
+          pinnedAt: null,
+        );
+
+        // Act
+        final json = item.toJson();
+
+        // Assert
+        expect(json['pinned'], false);
+        expect(json['pinnedAt'], null);
+      });
+
+      test('应该能复制并修改pinned字段', () {
+        // Arrange
+        final item = ClipboardItem(
+          id: 'test-id',
+          content: 'test content',
+          type: ClipboardItemType.text,
+          category: Category.text,
+          timestamp: DateTime.parse('2026-01-12T10:00:00.000Z'),
+          hash: 'abc123',
+          size: 12,
+          pinned: false,
+        );
+
+        // Act
+        final pinnedItem = item.copyWith(
+          pinned: true,
+          pinnedAt: DateTime.parse('2026-01-12T11:30:00.000Z'),
+        );
+
+        // Assert
+        expect(pinnedItem.pinned, true);
+        expect(pinnedItem.pinnedAt, DateTime.parse('2026-01-12T11:30:00.000Z'));
+        // 其他字段应该保持不变
+        expect(pinnedItem.id, item.id);
+        expect(pinnedItem.content, item.content);
+      });
+
+      test('应该能复制并取消置顶', () {
+        // Arrange
+        final item = ClipboardItem(
+          id: 'test-id',
+          content: 'test content',
+          type: ClipboardItemType.text,
+          category: Category.text,
+          timestamp: DateTime.parse('2026-01-12T10:00:00.000Z'),
+          hash: 'abc123',
+          size: 12,
+          pinned: true,
+          pinnedAt: DateTime.parse('2026-01-12T11:30:00.000Z'),
+        );
+
+        // Act - 使用 clearPinnedAt 参数清除置顶时间
+        final unpinnedItem = item.copyWith(
+          pinned: false,
+          clearPinnedAt: true,
+        );
+
+        // Assert
+        expect(unpinnedItem.pinned, false);
+        expect(unpinnedItem.pinnedAt, null);
+      });
+
+      test('pinned=true时isPinned应该返回true', () {
+        // Arrange
+        final item = ClipboardItem(
+          id: 'test-id',
+          content: 'test content',
+          type: ClipboardItemType.text,
+          category: Category.text,
+          timestamp: DateTime.parse('2026-01-12T10:00:00.000Z'),
+          hash: 'abc123',
+          size: 12,
+          pinned: true,
+          pinnedAt: DateTime.parse('2026-01-12T11:30:00.000Z'),
+        );
+
+        // Act & Assert
+        expect(item.isPinned, true);
+      });
+
+      test('pinned=false时isPinned应该返回false', () {
+        // Arrange
+        final item = ClipboardItem(
+          id: 'test-id',
+          content: 'test content',
+          type: ClipboardItemType.text,
+          category: Category.text,
+          timestamp: DateTime.parse('2026-01-12T10:00:00.000Z'),
+          hash: 'abc123',
+          size: 12,
+          pinned: false,
+        );
+
+        // Act & Assert
+        expect(item.isPinned, false);
+      });
+
+      test('pinned=true但pinnedAt为null时应该保持一致', () {
+        // 这是一个异常情况,但为了健壮性需要处理
+        final item = ClipboardItem(
+          id: 'test-id',
+          content: 'test content',
+          type: ClipboardItemType.text,
+          category: Category.text,
+          timestamp: DateTime.parse('2026-01-12T10:00:00.000Z'),
+          hash: 'abc123',
+          size: 12,
+          pinned: true,
+          pinnedAt: null, // 异常状态
+        );
+
+        expect(item.pinned, true);
+        expect(item.pinnedAt, null);
+        expect(item.isPinned, true);
+      });
+    });
   });
 }

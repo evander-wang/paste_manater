@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "commands": [
+    {
+      "id": "test-cmd-1",
+      "name": "测试命令1",
+      "command": "echo 'test1'",
+      "createdAt": "2026-01-12T10:00:00.000Z",
+      "modifiedAt": "2026-01-12T10:00:00.000Z",
+      "pinned": false,
+      "pinnedAt": null
+    },
+    {
+      "id": "test-cmd-2",
+      "name": "测试命令2",
+      "command": "echo 'test2'",
+      "createdAt": "2026-01-12T10:05:00.000Z",
+      "modifiedAt": "2026-01-12T10:05:00.000Z",
+      "pinned": true,
+      "pinnedAt": "2026-01-12T11:00:00.000Z"
+    },
+    {
+      "id": "test-cmd-3",
+      "name": "测试命令3",
+      "command": "echo 'test3'",
+      "createdAt": "2026-01-12T10:10:00.000Z",
+      "modifiedAt": "2026-01-12T10:10:00.000Z",
+      "pinned": false,
+      "pinnedAt": null
+    }
+  ]
+}

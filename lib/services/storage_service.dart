@@ -103,6 +103,66 @@ class StorageService {
       return 0;
     }
   }
+
+  /// 置顶剪贴板历史项 (T054)
+  ///
+  /// 更新指定项目的置顶状态并保存
+  Future<ClipboardHistory> pinItem(String itemId) async {
+    final history = await load();
+    final index = history.items.indexWhere((item) => item.id == itemId);
+
+    if (index == -1) {
+      throw ArgumentError('项目不存在: $itemId');
+    }
+
+    final item = history.items[index];
+    final updated = item.copyWith(
+      pinned: true,
+      pinnedAt: DateTime.now(),
+    );
+
+    final updatedItems = List<ClipboardItem>.from(history.items);
+    updatedItems[index] = updated;
+
+    final updatedHistory = ClipboardHistory(
+      initialItems: updatedItems,
+      maxItems: history.maxItems,
+      maxSize: history.maxSize,
+    );
+    await save(updatedHistory);
+
+    return updatedHistory;
+  }
+
+  /// 取消置顶剪贴板历史项 (T055)
+  ///
+  /// 取消指定项目的置顶状态并保存
+  Future<ClipboardHistory> unpinItem(String itemId) async {
+    final history = await load();
+    final index = history.items.indexWhere((item) => item.id == itemId);
+
+    if (index == -1) {
+      throw ArgumentError('项目不存在: $itemId');
+    }
+
+    final item = history.items[index];
+    final updated = item.copyWith(
+      pinned: false,
+      clearPinnedAt: true, // 使用 clearPinnedAt 清除置顶时间
+    );
+
+    final updatedItems = List<ClipboardItem>.from(history.items);
+    updatedItems[index] = updated;
+
+    final updatedHistory = ClipboardHistory(
+      initialItems: updatedItems,
+      maxItems: history.maxItems,
+      maxSize: history.maxSize,
+    );
+    await save(updatedHistory);
+
+    return updatedHistory;
+  }
 }
 
 /// 存储异常

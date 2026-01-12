@@ -9,7 +9,9 @@ import 'services/storage_service.dart';
 import 'services/clipboard_monitor.dart';
 import 'services/hotkey_manager.dart';
 import 'services/search_service.dart';
+import 'services/pin_service.dart';
 import 'widgets/monitoring_status_widget.dart';
+import 'widgets/command_tab.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,9 +50,13 @@ class PasteManagerApp extends StatefulWidget {
   State<PasteManagerApp> createState() => _PasteManagerAppState();
 }
 
-class _PasteManagerAppState extends State<PasteManagerApp> {
+class _PasteManagerAppState extends State<PasteManagerApp>
+    with SingleTickerProviderStateMixin {
   // 剪贴板历史
   ClipboardHistory _history = ClipboardHistory();
+
+  // TabController
+  late TabController _tabController;
 
   // 是否正在监听
   bool _isMonitoring = false;
@@ -79,6 +85,8 @@ class _PasteManagerAppState extends State<PasteManagerApp> {
   @override
   void initState() {
     super.initState();
+    // 初始化 TabController (2个标签页)
+    _tabController = TabController(length: 2, vsync: this);
     _loadHistory();
     _startAutoMonitoring();
     _startHistoryRefresh();
@@ -89,6 +97,7 @@ class _PasteManagerAppState extends State<PasteManagerApp> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     _historyRefreshTimer?.cancel();
     _searchDebounceTimer?.cancel();
     _statusSubscription?.cancel();
@@ -203,6 +212,10 @@ class _PasteManagerAppState extends State<PasteManagerApp> {
       final queryObj = SearchQuery(query: _searchQuery);
       results = searchService.search(ClipboardHistory(initialItems: results), queryObj);
     }
+
+    // 3. 应用置顶排序 (置顶项目在前,按置顶时间倒序)
+    final pinService = PinService();
+    results = pinService.sortByPinStatus(results);
 
     return ClipboardHistory(initialItems: results);
   }
@@ -328,121 +341,144 @@ class _PasteManagerAppState extends State<PasteManagerApp> {
                 tooltip: '刷新历史',
               ),
             ],
-          ),
-        body: Column(
-          children: [
-            // 历史记录区域
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 搜索框
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: '搜索剪贴板历史...',
-                          prefixIcon: const Icon(Icons.search),
-                          suffixIcon: _searchQuery.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear),
-                                  onPressed: _clearSearch,
-                                )
-                              : null,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                        ),
-                        onChanged: _onSearchChanged,
-                        onTap: () {
-                          // 用户点击搜索框时，清除选中状态
-                          setState(() {
-                            _selectedIndex = -1;
-                          });
-                        },
-                      ),
-                    ),
-                    // 分类过滤器
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          // "全部"按钮
-                          _buildCategoryButton(null, '全部', _history.totalCount),
-                          // 各个分类按钮
-                          ...Category.values.map((category) {
-                            final count = _categoryCounts[category] ?? 0;
-                            return _buildCategoryButton(
-                              category,
-                              _getCategoryLabel(category),
-                              count,
-                            );
-                          }),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.history, color: Colors.blue),
-                          const SizedBox(width: 8),
-                          Text(
-                            '历史记录 (${_history.totalCount} 项)',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Text(
-                            '↑↓ 选择  Enter 粘贴  Esc 关闭',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          const Spacer(),
-                          Builder(
-                            builder: (BuildContext builderContext) {
-                              return TextButton.icon(
-                                onPressed: () async {
-                                  await widget.storageService.clear();
-                                  await _loadHistory();
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(builderContext).showSnackBar(
-                                      const SnackBar(content: Text('🗑️ 历史已清空')),
-                                    );
-                                  }
-                                },
-                                icon: const Icon(Icons.delete_sweep, size: 18),
-                                label: const Text('清空'),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Divider(),
-                    Expanded(
-                      child: _buildHistoryList(),
-                    ),
-                  ],
-                ),
-              ),
+            bottom: TabBar(
+              controller: _tabController,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white70,
+              tabs: const [
+                Tab(text: '剪贴板历史', icon: Icon(Icons.history)),
+                Tab(text: '常用命令', icon: Icon(Icons.terminal)),
+              ],
             ),
-          ],
+          ),
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              // 第一个标签页: 剪贴板历史 (原有内容)
+              _buildClipboardHistoryTab(),
+              // 第二个标签页: 常用命令
+              CommandTab(clipboardMonitor: widget.clipboardMonitor),
+            ],
+          ),
         ),
       ),
-    ));
+    );
+  }
+
+  /// 构建剪贴板历史标签页
+  Widget _buildClipboardHistoryTab() {
+    return Column(
+      children: [
+        // 历史记录区域
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 搜索框
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: '搜索剪贴板历史...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: _clearSearch,
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    onChanged: _onSearchChanged,
+                    onTap: () {
+                      // 用户点击搜索框时,清除选中状态
+                      setState(() {
+                        _selectedIndex = -1;
+                      });
+                    },
+                  ),
+                ),
+                // 分类过滤器
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      // "全部"按钮
+                      _buildCategoryButton(null, '全部', _history.totalCount),
+                      // 各个分类按钮
+                      ...Category.values.map((category) {
+                        final count = _categoryCounts[category] ?? 0;
+                        return _buildCategoryButton(
+                          category,
+                          _getCategoryLabel(category),
+                          count,
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.history, color: Colors.blue),
+                      const SizedBox(width: 8),
+                      Text(
+                        '历史记录 (${_history.totalCount} 项)',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        '↑↓ 选择  Enter 粘贴  Esc 关闭',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const Spacer(),
+                      Builder(
+                        builder: (BuildContext builderContext) {
+                          return TextButton.icon(
+                            onPressed: () async {
+                              await widget.storageService.clear();
+                              await _loadHistory();
+                              if (mounted) {
+                                  ScaffoldMessenger.of(builderContext).showSnackBar(
+                                  const SnackBar(content: Text('🗑️ 历史已清空')),
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.delete_sweep, size: 18),
+                            label: const Text('清空'),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                Expanded(
+                  child: _buildHistoryList(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   /// 构建历史列表（包含搜索和空状态处理）
@@ -525,24 +561,41 @@ class _PasteManagerAppState extends State<PasteManagerApp> {
         final item = filtered.items[index];
         final isSelected = index == _selectedIndex;
 
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 4),
-          elevation: isSelected ? 4 : 1,
-          color: isSelected ? Colors.blue.shade50 : null,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-            side: BorderSide(
-              color: isSelected ? Colors.blue : Colors.transparent,
-              width: 2,
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: Card(
+            key: ValueKey(item.id),
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            elevation: isSelected ? 4 : 1,
+            color: isSelected ? Colors.blue.shade50 : (item.pinned ? Colors.amber[50] : null),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(
+                color: isSelected ? Colors.blue : (item.pinned ? Colors.amber : Colors.transparent),
+                width: item.pinned ? 2 : 1,
+              ),
             ),
-          ),
-          child: Builder(
-            builder: (BuildContext listTileContext) {
+            child: Builder(
+              builder: (BuildContext listTileContext) {
               return ListTile(
                 selected: isSelected,
-                leading: Icon(
-                  _getCategoryIcon(item.category),
-                  color: _getCategoryColor(item.category),
+                onLongPress: () => _showClipboardContextMenu(item, listTileContext),
+                leading: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (item.pinned)
+                      const Icon(
+                        Icons.push_pin,
+                        color: Colors.amber,
+                        size: 16,
+                      ),
+                    if (item.pinned) const SizedBox(width: 4),
+                    Icon(
+                      _getCategoryIcon(item.category),
+                      color: _getCategoryColor(item.category),
+                    ),
+                  ],
                 ),
                 title: _buildItemTitle(item, isSelected),
                 subtitle: Text(
@@ -621,9 +674,10 @@ class _PasteManagerAppState extends State<PasteManagerApp> {
               );
             },
           ),
-        );
-      },
-    );
+        ),
+      );
+    },
+  );
   }
 
   IconData _getCategoryIcon(Category category) {
@@ -725,6 +779,97 @@ class _PasteManagerAppState extends State<PasteManagerApp> {
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      ),
+    );
+  }
+
+  /// 显示剪贴板项目的上下文菜单 (置顶/取消置顶)
+  void _showClipboardContextMenu(ClipboardItem item, BuildContext context) {
+    final isPinned = item.isPinned;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(isPinned ? Icons.push_pin_outlined : Icons.push_pin),
+              title: Text(isPinned ? '取消置顶' : '置顶'),
+              onTap: () async {
+                Navigator.pop(context);
+                try {
+                  if (isPinned) {
+                    await widget.storageService.unpinItem(item.id);
+                  } else {
+                    await widget.storageService.pinItem(item.id);
+                  }
+                  await _loadHistory();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(isPinned ? '已取消置顶' : '已置顶'),
+                        duration: const Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('操作失败: $e'),
+                        duration: const Duration(seconds: 3),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.content_copy),
+              title: const Text('复制'),
+              onTap: () async {
+                Navigator.pop(context);
+                // 标记为自己的复制操作，避免被监听器记录
+                widget.clipboardMonitor.markOwnCopy(item.content);
+
+                await Clipboard.setData(
+                  ClipboardData(text: item.content),
+                );
+                if (mounted) {
+                  final preview = item.content.length > 20
+                      ? '${item.content.substring(0, 20)}...'
+                      : item.content;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('✅ 已复制: $preview'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text('删除', style: TextStyle(color: Colors.red)),
+              onTap: () async {
+                Navigator.pop(context);
+                // 从历史中移除项目
+                final updatedHistory = _history.remove(item.id);
+                await widget.storageService.save(updatedHistory);
+                await _loadHistory();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('🗑️ 已删除')),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
