@@ -528,6 +528,159 @@ class HotkeyPlugin: NSObject, FlutterPlugin {
   }
 }
 
+// MARK: - Status Bar Plugin
+
+class StatusItemPlugin: NSObject, FlutterPlugin {
+  private var methodChannel: FlutterMethodChannel?
+  private var statusItem: NSStatusItem?
+  private var statusItemMenu: NSMenu?
+
+  // 静态实例持有，防止被释放
+  private static var instance: StatusItemPlugin?
+
+  static func register(with registrar: FlutterPluginRegistrar) {
+    let plugin = StatusItemPlugin()
+    instance = plugin  // 持有实例
+
+    let channel = FlutterMethodChannel(
+      name: "paste_manager/status_item",
+      binaryMessenger: registrar.messenger
+    )
+    plugin.methodChannel = channel
+    plugin.setup()
+
+    print("✅ StatusItemPlugin 已注册")
+  }
+
+  private func setup() {
+    let channel = methodChannel!
+
+    // 创建状态栏图标
+    statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+
+    // 设置图标（使用文本图标，兼容旧版本）
+    if let button = statusItem?.button {
+      // 使用 "📋" 作为图标（剪贴板符号）
+      button.title = "📋"
+    }
+
+    // 创建菜单
+    setupMenu()
+
+    channel.setMethodCallHandler { [weak self] (call, result) in
+      guard let self = self else {
+        result(FlutterError(code: "UNAVAILABLE",
+                             message: "StatusItemPlugin not available",
+                             details: nil))
+        return
+      }
+
+      print("📥 StatusItemPlugin 收到方法调用: \(call.method)")
+
+      switch call.method {
+      case "openCommandFile":
+        self.openCommandFile(result: result)
+      default:
+        print("⚠️ StatusItemPlugin 未知方法: \(call.method)")
+        result(FlutterMethodNotImplemented)
+      }
+    }
+    print("✅ StatusItemPlugin 方法处理器已设置")
+  }
+
+  private func setupMenu() {
+    let menu = NSMenu()
+
+    // 打开常用命令文件
+    let openFileItem = NSMenuItem(
+      title: "打开常用命令文件",
+      action: #selector(openCommandFileMenuClicked),
+      keyEquivalent: ""
+    )
+    openFileItem.target = self
+    menu.addItem(openFileItem)
+
+    // 分隔线
+    menu.addItem(NSMenuItem.separator())
+
+    // 退出应用
+    let quitItem = NSMenuItem(
+      title: "退出",
+      action: #selector(quitApplication),
+      keyEquivalent: "q"
+    )
+    quitItem.target = self
+    menu.addItem(quitItem)
+
+    statusItemMenu = menu
+    statusItem?.menu = menu
+  }
+
+  @objc private func openCommandFileMenuClicked() {
+    print("📄 菜单点击: 打开常用命令文件")
+    openCommandFileInternal()
+  }
+
+  @objc private func quitApplication() {
+    print("👋 菜单点击: 退出应用")
+    NSApplication.shared.terminate(nil)
+  }
+
+  private func openCommandFile(result: @escaping FlutterResult) {
+    DispatchQueue.main.async { [weak self] in
+      self?.openCommandFileInternal()
+      result(true)
+    }
+  }
+
+  private func openCommandFileInternal() {
+    let fileURL: URL
+
+    // 优先打开应用支持目录的配置文件
+    let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+    let appSupportFile = appSupportURL.appendingPathComponent("com.example.pasteManager/.paste_manager.json")
+
+    if FileManager.default.fileExists(atPath: appSupportFile.path) {
+      fileURL = appSupportFile
+    } else {
+      // 备用: 用户主目录
+      let homeDir = FileManager.default.homeDirectoryForCurrentUser
+      fileURL = homeDir.appendingPathComponent(".paste_manager.json")
+    }
+
+    // 检查文件是否存在
+    if !FileManager.default.fileExists(atPath: fileURL.path) {
+      print("⚠️ 文件不存在: \(fileURL.path)")
+
+      // 显示文件不存在的提示
+      let alert = NSAlert()
+      alert.messageText = "配置文件不存在"
+      alert.informativeText = "常用命令配置文件尚未创建。\n\n请在应用中添加常用命令后,系统会自动创建配置文件。\n\n配置文件位置:\n\(fileURL.path)"
+      alert.alertStyle = .warning
+      alert.addButton(withTitle: "确定")
+      alert.runModal()
+
+      return
+    }
+
+    print("📂 打开文件: \(fileURL.path)")
+
+    // 使用 NSWorkspace 打开文件（使用默认编辑器）
+    NSWorkspace.shared.openFile(fileURL.path)
+  }
+
+  func detach() {
+    // 移除状态栏图标
+    if let statusItem = statusItem {
+      NSStatusBar.system.removeStatusItem(statusItem)
+      self.statusItem = nil
+    }
+
+    statusItemMenu = nil
+    methodChannel = nil
+  }
+}
+
 // MARK: - AppDelegate
 
 @main

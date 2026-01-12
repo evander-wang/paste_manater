@@ -24,6 +24,7 @@ class MainFlutterWindow: NSWindow {
     // 注册自定义插件
     ClipboardMonitorPlugin.register(with: flutterViewController.registrar(forPlugin: "ClipboardMonitorPlugin"))
     HotkeyPlugin.register(with: flutterViewController.registrar(forPlugin: "HotkeyPlugin"))
+    StatusItemPlugin.register(with: flutterViewController.registrar(forPlugin: "StatusItemPlugin"))
 
     print("✅ 自定义插件已注册在 MainFlutterWindow")
     print("📐 窗口大小: \(initialWindowSize.width) x \(initialWindowSize.height)")
