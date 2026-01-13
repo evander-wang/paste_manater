@@ -30,31 +30,66 @@ class EmptyStateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 64,
-            color: iconColor ?? Colors.grey[400],
+      child: Container(
+        margin: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: theme.colorScheme.outline.withValues(alpha: 0.2),
           ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          ..._buildSubtitles(context),
-          if (exampleCode != null) ...[
-            const SizedBox(height: 16),
-            Text(
-              '格式示例:',
-              style: Theme.of(context).textTheme.labelMedium,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: (iconColor ?? theme.colorScheme.primary).withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 48,
+                color: iconColor ?? theme.colorScheme.primary,
+              ),
             ),
-            const SizedBox(height: 8),
-            _buildExampleCode(),
+            const SizedBox(height: 24),
+            Text(
+              title,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ..._buildSubtitles(context),
+            if (exampleCode != null) ...[
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '格式示例',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildExampleCode(context),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -63,33 +98,40 @@ class EmptyStateView extends StatelessWidget {
   List<Widget> _buildSubtitles(BuildContext context) {
     final widgets = <Widget>[];
     for (int i = 0; i < subtitles.length; i++) {
-      widgets.add(const SizedBox(height: 8));
-      widgets.add(
-        Text(
-          subtitles[i],
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
-              ),
-        ),
-      );
+      widgets
+        ..add(const SizedBox(height: 8))
+        ..add(
+          Text(
+            subtitles[i],
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+            textAlign: TextAlign.center,
+          ),
+        );
     }
     return widgets;
   }
 
   /// 构建示例代码框
-  Widget _buildExampleCode() {
+  Widget _buildExampleCode(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.symmetric(horizontal: 32),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(8),
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.3),
+        ),
       ),
       child: Text(
         exampleCode!,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: 'monospace',
           fontSize: 12,
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
         ),
       ),
     );

@@ -44,29 +44,50 @@ class ClipboardListItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      child: Card(
-        key: ValueKey(item.id),
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        elevation: isSelected ? 4 : 1,
-        color: _getBackgroundColor(),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(
-            color: _getBorderColor(),
-            width: item.pinned ? 2 : 1,
-          ),
-        ),
-        child: ListTile(
-          selected: isSelected,
-          onLongPress: onLongPress,
-          leading: _buildLeading(),
-          title: _buildTitle(),
-          subtitle: _buildSubtitle(),
-          trailing: _buildTrailing(context),
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutCubic,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Material(
+        color: _getBackgroundColor(context),
+        borderRadius: BorderRadius.circular(12),
+        elevation: isSelected ? 8 : (item.pinned ? 4 : 2),
+        shadowColor: theme.shadowColor.withValues(alpha: 0.15),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
           onTap: onTap,
+          onLongPress: onLongPress,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _getBorderColor(context),
+                width: item.pinned ? 2 : 0,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  _buildLeading(),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTitle(context),
+                        const SizedBox(height: 4),
+                        _buildSubtitle(context),
+                      ],
+                    ),
+                  ),
+                  _buildTrailing(context),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -93,24 +114,28 @@ class ClipboardListItemWidget extends StatelessWidget {
   }
 
   /// 构建标题
-  Widget _buildTitle() {
+  Widget _buildTitle(BuildContext context) {
     return Text(
       item.content,
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        fontWeight: FontWeight.w600,
+        fontSize: 15,
+        color: isSelected
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).colorScheme.onSurface,
       ),
     );
   }
 
   /// 构建副标题(时间戳)
-  Widget _buildSubtitle() {
+  Widget _buildSubtitle(BuildContext context) {
     return Text(
       _formatTimestamp(item.timestamp),
       style: TextStyle(
         fontSize: 12,
-        color: Colors.grey[600],
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
       ),
     );
   }
@@ -120,31 +145,76 @@ class ClipboardListItemWidget extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
-          icon: const Icon(Icons.copy, size: 18),
-          onPressed: onCopy,
-          tooltip: '复制到剪贴板',
+        _buildActionButton(
+          context,
+          icon: Icons.copy_outlined,
+          onTap: onCopy,
+          tooltip: '复制',
         ),
-        IconButton(
-          icon: const Icon(Icons.delete, size: 18),
-          onPressed: onDelete,
+        const SizedBox(width: 4),
+        _buildActionButton(
+          context,
+          icon: Icons.delete_outline,
+          onTap: onDelete,
           tooltip: '删除',
+          isDanger: true,
         ),
       ],
     );
   }
 
+  /// 构建操作按钮
+  Widget _buildActionButton(
+    BuildContext context, {
+    required IconData icon,
+    required VoidCallback onTap,
+    required String tooltip,
+    bool isDanger = false,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isDanger
+                ? Theme.of(context).colorScheme.error.withValues(alpha: 0.1)
+                : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            size: 18,
+            color: isDanger
+                ? Theme.of(context).colorScheme.error
+                : Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ),
+    );
+  }
+
   /// 获取背景色
-  Color? _getBackgroundColor() {
-    if (isSelected) return Colors.blue.shade50;
-    if (item.pinned) return Colors.amber[50];
-    return null;
+  Color? _getBackgroundColor(BuildContext context) {
+    if (isSelected) {
+      return Theme.of(context).colorScheme.primary.withValues(alpha: 0.08);
+    }
+    if (item.pinned) {
+      return Theme.of(context).colorScheme.secondary.withValues(alpha: 0.08);
+    }
+    return Theme.of(context).colorScheme.surface;
   }
 
   /// 获取边框颜色
-  Color _getBorderColor() {
-    if (isSelected) return Colors.blue;
-    if (item.pinned) return Colors.amber;
+  Color _getBorderColor(BuildContext context) {
+    if (isSelected) {
+      return Theme.of(context).colorScheme.primary;
+    }
+    if (item.pinned) {
+      return Theme.of(context).colorScheme.secondary;
+    }
     return Colors.transparent;
   }
 

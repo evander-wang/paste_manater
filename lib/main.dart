@@ -9,6 +9,7 @@ import 'widgets/monitoring_status_widget.dart';
 import 'widgets/command_tab.dart';
 import 'controllers/clipboard_history_controller.dart';
 import 'ui/clipboard_history_tab.dart';
+import 'ui/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -129,15 +130,11 @@ class _PasteManagerAppState extends State<PasteManagerApp>
   Widget build(BuildContext context) {
     return MaterialApp(
       title: '智能剪贴板管理器',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       home: Scaffold(
         appBar: AppBar(
           title: const Text('智能剪贴板管理器'),
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
           actions: [
             // 状态显示组件
             Padding(
@@ -156,8 +153,6 @@ class _PasteManagerAppState extends State<PasteManagerApp>
           ],
           bottom: TabBar(
             controller: _tabController,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
             tabs: const [
               Tab(text: '剪贴板历史', icon: Icon(Icons.history)),
               Tab(text: '常用命令', icon: Icon(Icons.terminal)),
