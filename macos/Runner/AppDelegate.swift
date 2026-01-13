@@ -568,7 +568,7 @@ class StatusItemPlugin: NSObject, FlutterPlugin {
     setupMenu()
 
     channel.setMethodCallHandler { [weak self] (call, result) in
-      guard let self = self else {
+      guard self != nil else {
         result(FlutterError(code: "UNAVAILABLE",
                              message: "StatusItemPlugin not available",
                              details: nil))
@@ -577,31 +577,15 @@ class StatusItemPlugin: NSObject, FlutterPlugin {
 
       print("📥 StatusItemPlugin 收到方法调用: \(call.method)")
 
-      switch call.method {
-      case "openCommandFile":
-        self.openCommandFile(result: result)
-      default:
-        print("⚠️ StatusItemPlugin 未知方法: \(call.method)")
-        result(FlutterMethodNotImplemented)
-      }
+      // 目前没有实现的方法
+      print("⚠️ StatusItemPlugin 未知方法: \(call.method)")
+      result(FlutterMethodNotImplemented)
     }
     print("✅ StatusItemPlugin 方法处理器已设置")
   }
 
   private func setupMenu() {
     let menu = NSMenu()
-
-    // 打开常用命令文件
-    let openFileItem = NSMenuItem(
-      title: "打开常用命令文件",
-      action: #selector(openCommandFileMenuClicked),
-      keyEquivalent: ""
-    )
-    openFileItem.target = self
-    menu.addItem(openFileItem)
-
-    // 分隔线
-    menu.addItem(NSMenuItem.separator())
 
     // 退出应用
     let quitItem = NSMenuItem(
@@ -616,57 +600,9 @@ class StatusItemPlugin: NSObject, FlutterPlugin {
     statusItem?.menu = menu
   }
 
-  @objc private func openCommandFileMenuClicked() {
-    print("📄 菜单点击: 打开常用命令文件")
-    openCommandFileInternal()
-  }
-
   @objc private func quitApplication() {
     print("👋 菜单点击: 退出应用")
     NSApplication.shared.terminate(nil)
-  }
-
-  private func openCommandFile(result: @escaping FlutterResult) {
-    DispatchQueue.main.async { [weak self] in
-      self?.openCommandFileInternal()
-      result(true)
-    }
-  }
-
-  private func openCommandFileInternal() {
-    let fileURL: URL
-
-    // 优先打开应用支持目录的配置文件
-    let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-    let appSupportFile = appSupportURL.appendingPathComponent("com.example.pasteManager/.paste_manager.json")
-
-    if FileManager.default.fileExists(atPath: appSupportFile.path) {
-      fileURL = appSupportFile
-    } else {
-      // 备用: 用户主目录
-      let homeDir = FileManager.default.homeDirectoryForCurrentUser
-      fileURL = homeDir.appendingPathComponent(".paste_manager.json")
-    }
-
-    // 检查文件是否存在
-    if !FileManager.default.fileExists(atPath: fileURL.path) {
-      print("⚠️ 文件不存在: \(fileURL.path)")
-
-      // 显示文件不存在的提示
-      let alert = NSAlert()
-      alert.messageText = "配置文件不存在"
-      alert.informativeText = "常用命令配置文件尚未创建。\n\n请在应用中添加常用命令后,系统会自动创建配置文件。\n\n配置文件位置:\n\(fileURL.path)"
-      alert.alertStyle = .warning
-      alert.addButton(withTitle: "确定")
-      alert.runModal()
-
-      return
-    }
-
-    print("📂 打开文件: \(fileURL.path)")
-
-    // 使用 NSWorkspace 打开文件（使用默认编辑器）
-    NSWorkspace.shared.openFile(fileURL.path)
   }
 
   func detach() {

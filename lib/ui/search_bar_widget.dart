@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// 搜索栏组件
-class SearchBarWidget extends StatelessWidget {
+class SearchBarWidget extends StatefulWidget {
   /// 当前搜索关键词
   final String searchQuery;
 
@@ -23,12 +23,41 @@ class SearchBarWidget extends StatelessWidget {
   });
 
   @override
+  State<SearchBarWidget> createState() => _SearchBarWidgetState();
+}
+
+class _SearchBarWidgetState extends State<SearchBarWidget> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.searchQuery);
+  }
+
+  @override
+  void didUpdateWidget(SearchBarWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 当外部 searchQuery 变化时,同步更新 controller
+    if (widget.searchQuery != _controller.text) {
+      _controller.text = widget.searchQuery;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
       child: TextField(
+        controller: _controller,
         decoration: InputDecoration(
           hintText: '搜索剪贴板历史...',
           hintStyle: TextStyle(
@@ -40,10 +69,10 @@ class SearchBarWidget extends StatelessWidget {
             color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
             size: 18,
           ),
-          suffixIcon: searchQuery.isNotEmpty
+          suffixIcon: widget.searchQuery.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear, size: 18),
-                  onPressed: onClear,
+                  onPressed: widget.onClear,
                   padding: EdgeInsets.zero,
                 )
               : null,
@@ -74,8 +103,8 @@ class SearchBarWidget extends StatelessWidget {
           ),
           isDense: true,
         ),
-        onChanged: onChanged,
-        onTap: onTap,
+        onChanged: widget.onChanged,
+        onTap: widget.onTap,
         style: const TextStyle(fontSize: 13),
       ),
     );

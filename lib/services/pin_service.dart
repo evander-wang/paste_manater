@@ -1,5 +1,4 @@
 import '../models/pin_status.dart';
-import '../models/command.dart' show Command;
 import '../models/clipboard_item.dart' show ClipboardItem;
 
 /// 置顶服务
@@ -11,12 +10,7 @@ class PinService {
   /// 返回新的项目实例,其中pinned=true, pinnedAt=当前时间
   T pin<T extends PinStatus>(T item) {
     // 使用copyWith模式创建新实例
-    if (item is Command) {
-      return item.copyWith(
-        pinned: true,
-        pinnedAt: DateTime.now(),
-      ) as T;
-    } else if (item is ClipboardItem) {
+    if (item is ClipboardItem) {
       return item.copyWith(
         pinned: true,
         pinnedAt: DateTime.now(),
@@ -29,12 +23,7 @@ class PinService {
   ///
   /// 返回新的项目实例,其中pinned=false, pinnedAt=null
   T unpin<T extends PinStatus>(T item) {
-    if (item is Command) {
-      return item.copyWith(
-        pinned: false,
-        clearPinnedAt: true,
-      ) as T;
-    } else if (item is ClipboardItem) {
+    if (item is ClipboardItem) {
       return item.copyWith(
         pinned: false,
         clearPinnedAt: true,
