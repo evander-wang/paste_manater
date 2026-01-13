@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/category.dart';
 
 /// 分类过滤器组件
+///
+/// 现代化的分段控制器设计，支持平滑动画和优雅的视觉效果
 class CategoryFilterWidget extends StatelessWidget {
   /// 当前选中的分类
   final Category? selectedCategory;
@@ -33,21 +35,44 @@ class CategoryFilterWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
         children: [
           // "全部"按钮
-          _buildCategoryButton(null, '全部', totalCount),
+          Expanded(
+            child: _buildFilterButton(
+              context,
+              category: null,
+              label: '全部',
+              count: totalCount,
+              icon: Icons.apps_rounded,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: 4),
           // 各个分类按钮
           ...Category.values.map((category) {
             final count = categoryCounts[category] ?? 0;
-            return _buildCategoryButton(
-              category,
-              _getCategoryLabel(category),
-              count,
+            return Expanded(
+              child: _buildFilterButton(
+                context,
+                category: category,
+                label: _getCategoryLabel(category),
+                count: count,
+                icon: getIcon(category),
+                color: getColor(category),
+              ),
             );
           }),
         ],
@@ -55,37 +80,68 @@ class CategoryFilterWidget extends StatelessWidget {
     );
   }
 
-  /// 构建分类按钮
-  Widget _buildCategoryButton(Category? category, String label, int count) {
+  /// 构建过滤器按钮
+  Widget _buildFilterButton(
+    BuildContext context, {
+    required Category? category,
+    required String label,
+    required int count,
+    required IconData icon,
+    required Color color,
+  }) {
     final isSelected = selectedCategory == category;
-    final icon = category != null ? getIcon(category) : Icons.apps;
-    final color = category != null ? getColor(category) : Colors.grey;
+    final theme = Theme.of(context);
 
-    return FilterChip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (category != null) ...[
-            Icon(icon, size: 16, color: isSelected ? Colors.white : color),
-            const SizedBox(width: 4),
-          ],
-          Text(label),
-          const SizedBox(width: 4),
-          Text(
-            '($count)',
-            style: TextStyle(
-              fontSize: 12,
-              color: isSelected ? Colors.white70 : Colors.grey[600],
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutCubic,
+      child: Material(
+        color: isSelected
+            ? color
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: () => onCategoryToggle(category),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 20,
+                  color: isSelected ? Colors.white : color.withValues(alpha: 0.7),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isSelected
+                        ? Colors.white
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+                if (count > 0) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    '$count',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: isSelected
+                          ? Colors.white.withValues(alpha: 0.8)
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
-        ],
+        ),
       ),
-      selected: isSelected,
-      onSelected: (_) => onCategoryToggle(category),
-      selectedColor: color,
-      backgroundColor: Colors.grey[100],
-      checkmarkColor: Colors.white,
-      elevation: isSelected ? 4 : 0,
     );
   }
 
