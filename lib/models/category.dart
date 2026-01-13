@@ -2,12 +2,13 @@ import 'clipboard_item.dart';
 
 /// 内容分类枚举
 ///
-/// 表示剪贴板内容的分类类型，包含 4 种分类
+/// 表示剪贴板内容的分类类型，包含 5 种分类
 enum Category {
   text,
   link,
   code,
   file,
+  image,
 }
 
 /// 分类工具类
@@ -95,6 +96,8 @@ class CategoryClassifier {
         return '代码';
       case Category.file:
         return '文件';
+      case Category.image:
+        return '图像';
     }
   }
 
@@ -109,6 +112,8 @@ class CategoryClassifier {
         return 'chevron.left.forwardslash.chevron.right';
       case Category.file:
         return 'doc';
+      case Category.image:
+        return 'photo';
     }
   }
 
@@ -123,6 +128,8 @@ class CategoryClassifier {
         return 3;
       case Category.text:
         return 4;
+      case Category.image:
+        return 5;
     }
   }
 }
@@ -130,4 +137,5 @@ class CategoryClassifier {
 /// 剪贴板数据类型（用于分类判断）
 enum ClipboardDataType {
   text,
+  image,
 }
