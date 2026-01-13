@@ -39,10 +39,11 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         foregroundColor: Color(0xFF1C1C1E),
         titleTextStyle: TextStyle(
-          fontSize: 20,
+          fontSize: 17,
           fontWeight: FontWeight.w600,
           color: Color(0xFF1C1C1E),
         ),
+        toolbarHeight: 44, // 更紧凑的工具栏
       ),
 
       // TabBar 主题
@@ -52,13 +53,14 @@ class AppTheme {
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
         labelStyle: TextStyle(
-          fontSize: 14,
+          fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelStyle: TextStyle(
-          fontSize: 14,
+          fontSize: 13,
           fontWeight: FontWeight.w500,
         ),
+        labelPadding: EdgeInsets.symmetric(horizontal: 12),
       ),
 
       // 浮动按钮主题
@@ -144,10 +146,11 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         titleTextStyle: TextStyle(
-          fontSize: 20,
+          fontSize: 17,
           fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
+        toolbarHeight: 44, // 更紧凑的工具栏
       ),
 
       tabBarTheme: const TabBarThemeData(
@@ -155,13 +158,14 @@ class AppTheme {
         unselectedLabelColor: Color(0xFF8E8E93),
         dividerColor: Colors.transparent,
         labelStyle: TextStyle(
-          fontSize: 14,
+          fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelStyle: TextStyle(
-          fontSize: 14,
+          fontSize: 13,
           fontWeight: FontWeight.w500,
         ),
+        labelPadding: EdgeInsets.symmetric(horizontal: 12),
       ),
 
       inputDecorationTheme: InputDecorationTheme(

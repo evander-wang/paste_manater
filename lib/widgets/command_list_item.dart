@@ -4,7 +4,7 @@ import 'package:paste_manager/services/command_service.dart';
 
 /// CommandListItem - 命令列表项
 ///
-/// 显示单个命令,支持点击复制、右键菜单置顶/取消置顶、显示置顶状态
+/// 显示单个命令,使用与剪贴板历史记录相同的卡片样式
 class CommandListItem extends StatelessWidget {
   final Command command;
   final VoidCallback onTap;
@@ -19,62 +19,149 @@ class CommandListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: _buildLeadingIcon(),
-      title: Text(
-        command.name,
-        style: const TextStyle(fontWeight: FontWeight.w500),
-      ),
-      subtitle: Text(
-        command.command,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontFamily: 'monospace',
-          color: Colors.grey[600],
-          fontSize: 13,
+    final theme = Theme.of(context);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutCubic,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+      child: Material(
+        color: _getBackgroundColor(context),
+        borderRadius: BorderRadius.circular(10),
+        elevation: command.pinned ? 3 : 1,
+        shadowColor: theme.shadowColor.withValues(alpha: 0.15),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: onTap,
+          onLongPress: () => _showContextMenu(context),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: _getBorderColor(context),
+                width: command.pinned ? 1 : 0,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Row(
+                children: [
+                  _buildLeading(),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTitle(context),
+                        const SizedBox(height: 3),
+                        _buildSubtitle(context),
+                      ],
+                    ),
+                  ),
+                  _buildTrailing(context),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
-      trailing: _buildTrailingIcon(),
-      onTap: onTap,
-      onLongPress: () => _showContextMenu(context),
-      // 置顶项目使用不同的背景色
-      tileColor: command.pinned ? Colors.amber[50] : null,
     );
   }
 
-  /// 构建左侧图标
-  Widget _buildLeadingIcon() {
+  /// 构建前置图标
+  Widget _buildLeading() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (command.pinned)
+          Icon(
+            Icons.push_pin,
+            size: 14,
+            color: Colors.amber[700],
+          ),
+        if (command.pinned)
+          const SizedBox(width: 6)
+        else
+          const SizedBox(width: 20),
+        Icon(
+          Icons.terminal,
+          size: 18,
+          color: Colors.blue[400],
+        ),
+      ],
+    );
+  }
+
+  /// 构建标题
+  Widget _buildTitle(BuildContext context) {
+    return Text(
+      command.name,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontWeight: FontWeight.w600,
+        fontSize: 14,
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
+    );
+  }
+
+  /// 构建副标题(命令内容)
+  Widget _buildSubtitle(BuildContext context) {
+    return Text(
+      command.command,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: 11,
+        fontFamily: 'monospace',
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+      ),
+    );
+  }
+
+  /// 构建尾部复制按钮
+  Widget _buildTrailing(BuildContext context) {
+    return Tooltip(
+      message: '复制',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(
+            Icons.copy,
+            size: 16,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 获取背景色
+  Color? _getBackgroundColor(BuildContext context) {
     if (command.pinned) {
-      // 置顶图标
-      return const Icon(
-        Icons.push_pin,
-        color: Colors.amber,
-        size: 20,
-      );
-    } else {
-      // 默认图标
-      return Icon(
-        Icons.terminal,
-        color: Colors.blue[400],
-        size: 20,
-      );
+      return Theme.of(context).colorScheme.secondary.withValues(alpha: 0.05);
     }
+    return Theme.of(context).colorScheme.surface;
   }
 
-  /// 构建右侧图标
-  Widget? _buildTrailingIcon() {
-    return Icon(
-      Icons.copy,
-      color: Colors.grey[400],
-      size: 20,
-    );
+  /// 获取边框颜色
+  Color _getBorderColor(BuildContext context) {
+    if (command.pinned) {
+      return Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3);
+    }
+    return Colors.transparent;
   }
 
   /// 显示上下文菜单 (右键菜单 / 长按菜单)
   void _showContextMenu(BuildContext context) {
     if (commandService == null) {
-      // 如果没有提供 commandService,则不显示菜单
       return;
     }
 

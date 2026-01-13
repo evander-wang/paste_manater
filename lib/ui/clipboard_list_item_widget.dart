@@ -49,36 +49,36 @@ class ClipboardListItemWidget extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOutCubic,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
       child: Material(
         color: _getBackgroundColor(context),
-        borderRadius: BorderRadius.circular(12),
-        elevation: isSelected ? 8 : (item.pinned ? 4 : 2),
+        borderRadius: BorderRadius.circular(10),
+        elevation: isSelected ? 6 : (item.pinned ? 3 : 1),
         shadowColor: theme.shadowColor.withValues(alpha: 0.15),
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           onTap: onTap,
           onLongPress: onLongPress,
           child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: _getBorderColor(context),
-                width: item.pinned ? 2 : 0,
+                width: (isSelected || item.pinned) ? 1 : 0,
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               child: Row(
                 children: [
                   _buildLeading(),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildTitle(context),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
                         _buildSubtitle(context),
                       ],
                     ),
@@ -121,7 +121,7 @@ class ClipboardListItemWidget extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
         fontWeight: FontWeight.w600,
-        fontSize: 15,
+        fontSize: 14,
         color: isSelected
             ? Theme.of(context).colorScheme.primary
             : Theme.of(context).colorScheme.onSurface,
@@ -134,7 +134,7 @@ class ClipboardListItemWidget extends StatelessWidget {
     return Text(
       _formatTimestamp(item.timestamp),
       style: TextStyle(
-        fontSize: 12,
+        fontSize: 11,
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
       ),
     );
@@ -175,18 +175,18 @@ class ClipboardListItemWidget extends StatelessWidget {
       message: tooltip,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
         child: Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
             color: isDanger
                 ? Theme.of(context).colorScheme.error.withValues(alpha: 0.1)
                 : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(6),
           ),
           child: Icon(
             icon,
-            size: 18,
+            size: 16,
             color: isDanger
                 ? Theme.of(context).colorScheme.error
                 : Theme.of(context).colorScheme.primary,
@@ -202,7 +202,7 @@ class ClipboardListItemWidget extends StatelessWidget {
       return Theme.of(context).colorScheme.primary.withValues(alpha: 0.08);
     }
     if (item.pinned) {
-      return Theme.of(context).colorScheme.secondary.withValues(alpha: 0.08);
+      return Theme.of(context).colorScheme.secondary.withValues(alpha: 0.05);
     }
     return Theme.of(context).colorScheme.surface;
   }
@@ -210,10 +210,10 @@ class ClipboardListItemWidget extends StatelessWidget {
   /// 获取边框颜色
   Color _getBorderColor(BuildContext context) {
     if (isSelected) {
-      return Theme.of(context).colorScheme.primary;
+      return Theme.of(context).colorScheme.primary.withValues(alpha: 0.5);
     }
     if (item.pinned) {
-      return Theme.of(context).colorScheme.secondary;
+      return Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3);
     }
     return Colors.transparent;
   }

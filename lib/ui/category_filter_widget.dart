@@ -38,11 +38,11 @@ class CategoryFilterWidget extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      padding: const EdgeInsets.all(4),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: theme.colorScheme.outline.withValues(alpha: 0.2),
         ),
@@ -60,7 +60,7 @@ class CategoryFilterWidget extends StatelessWidget {
               color: theme.colorScheme.primary,
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 3),
           // 各个分类按钮
           ...Category.values.map((category) {
             final count = categoryCounts[category] ?? 0;
@@ -99,25 +99,25 @@ class CategoryFilterWidget extends StatelessWidget {
         color: isSelected
             ? color
             : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(9),
         child: InkWell(
           onTap: () => onCategoryToggle(category),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(9),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   icon,
-                  size: 20,
+                  size: 18,
                   color: isSelected ? Colors.white : color.withValues(alpha: 0.7),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: FontWeight.w600,
                     color: isSelected
                         ? Colors.white
@@ -125,11 +125,11 @@ class CategoryFilterWidget extends StatelessWidget {
                   ),
                 ),
                 if (count > 0) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 1),
                   Text(
                     '$count',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: FontWeight.w500,
                       color: isSelected
                           ? Colors.white.withValues(alpha: 0.8)

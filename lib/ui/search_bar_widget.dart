@@ -27,51 +27,56 @@ class SearchBarWidget extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
       child: TextField(
         decoration: InputDecoration(
           hintText: '搜索剪贴板历史...',
           hintStyle: TextStyle(
             color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            fontSize: 13,
           ),
           prefixIcon: Icon(
             Icons.search,
             color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            size: 18,
           ),
           suffixIcon: searchQuery.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear),
+                  icon: const Icon(Icons.clear, size: 18),
                   onPressed: onClear,
+                  padding: EdgeInsets.zero,
                 )
               : null,
           filled: true,
           fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide(
               color: theme.colorScheme.outline.withValues(alpha: 0.3),
             ),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide(
               color: theme.colorScheme.outline.withValues(alpha: 0.3),
             ),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide(
               color: theme.colorScheme.primary,
-              width: 2,
+              width: 1.5,
             ),
           ),
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
+            horizontal: 12,
+            vertical: 8,
           ),
+          isDense: true,
         ),
         onChanged: onChanged,
         onTap: onTap,
+        style: const TextStyle(fontSize: 13),
       ),
     );
   }
