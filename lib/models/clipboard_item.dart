@@ -137,5 +137,4 @@ enum ClipboardItemType {
   text,
   url,
   file,
-  image,
 }

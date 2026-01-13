@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:paste_manager/services/hotkey_manager.dart';
 import 'package:paste_manager/services/storage_service.dart';
+import 'package:paste_manager/models/clipboard_history.dart';
 
 class MockStorageService extends Mock implements StorageService {}
 
@@ -282,13 +283,16 @@ void main() {
       );
 
       // Act
-      final result = await hotkeyManager.registerWithDetails(hotkey2, () {});
+      final result = await hotkeyManager.registerWithDetails(hotkey2, (hotkey) {});
 
       // Assert
       expect(result.success, isFalse);
       expect(result.errorMessage, isNotNull);
-      expect(result.errorMessage, contains('conflict') ||
-                                   result.errorMessage, contains('冲突'));
+      expect(
+        result.errorMessage!.contains('conflict') ||
+        result.errorMessage!.contains('冲突'),
+        isTrue,
+      );
     });
   });
 }

@@ -7,6 +7,9 @@ import '../services/clipboard_monitor.dart';
 import '../services/storage_service.dart';
 import 'search_bar_widget.dart';
 import 'category_filter_widget.dart';
+import 'clipboard_list_item_widget.dart';
+import 'clipboard_context_menu.dart';
+import 'empty_state_view.dart';
 
 /// 剪贴板历史标签页组件
 class ClipboardHistoryTab extends StatefulWidget {
@@ -176,77 +179,15 @@ class _ClipboardHistoryTabState extends State<ClipboardHistoryTab> {
 
   /// 构建列表项
   Widget _buildListItem(ClipboardItem item, bool isSelected, BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      child: Card(
-        key: ValueKey(item.id),
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        elevation: isSelected ? 4 : 1,
-        color: isSelected
-            ? Colors.blue.shade50
-            : (item.pinned ? Colors.amber[50] : null),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(
-            color: isSelected
-                ? Colors.blue
-                : (item.pinned ? Colors.amber : Colors.transparent),
-            width: item.pinned ? 2 : 1,
-          ),
-        ),
-        child: ListTile(
-          selected: isSelected,
-          onLongPress: () => _showContextMenu(item, context),
-          leading: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (item.pinned)
-                const Icon(
-                  Icons.push_pin,
-                  color: Colors.amber,
-                  size: 16,
-                ),
-              if (item.pinned) const SizedBox(width: 4),
-              Icon(
-                _getCategoryIcon(item.category),
-                color: _getCategoryColor(item.category),
-              ),
-            ],
-          ),
-          title: Text(
-            item.content,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-          subtitle: Text(
-            _formatTimestamp(item.timestamp),
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.copy, size: 18),
-                onPressed: () => _copyToClipboard(item, context),
-                tooltip: '复制到剪贴板',
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete, size: 18),
-                onPressed: () => _deleteItem(item, context),
-                tooltip: '删除',
-              ),
-            ],
-          ),
-          onTap: () => _copyToClipboard(item, context),
-        ),
-      ),
+    return ClipboardListItemWidget(
+      item: item,
+      isSelected: isSelected,
+      onTap: () => _copyToClipboard(item, context),
+      onLongPress: () => _showContextMenu(item, context),
+      onCopy: () => _copyToClipboard(item, context),
+      onDelete: () => _deleteItem(item, context),
+      getIcon: _getCategoryIcon,
+      getColor: _getCategoryColor,
     );
   }
 
@@ -320,65 +261,45 @@ class _ClipboardHistoryTabState extends State<ClipboardHistoryTab> {
   void _showContextMenu(ClipboardItem item, BuildContext context) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(item.pinned ? Icons.push_pin_outlined : Icons.push_pin),
-              title: Text(item.pinned ? '取消置顶' : '置顶'),
-              onTap: () async {
-                Navigator.pop(context);
-                try {
-                  if (item.pinned) {
-                    await widget.storageService.unpinItem(item.id);
-                  } else {
-                    await widget.storageService.pinItem(item.id);
-                  }
-                  await widget.controller.loadHistory();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(item.pinned ? '已取消置顶' : '已置顶'),
-                        duration: const Duration(seconds: 2),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('操作失败: $e'),
-                        duration: const Duration(seconds: 3),
-                        behavior: SnackBarBehavior.floating,
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.content_copy),
-              title: const Text('复制'),
-              onTap: () async {
-                Navigator.pop(context);
-                await _copyToClipboard(item, context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('删除', style: TextStyle(color: Colors.red)),
-              onTap: () async {
-                Navigator.pop(context);
-                await _deleteItem(item, context);
-              },
-            ),
-          ],
-        ),
+      builder: (context) => ClipboardContextMenu(
+        item: item,
+        onTogglePin: () => _handleTogglePin(item, context),
+        onCopy: () => _copyToClipboard(item, context),
+        onDelete: () => _deleteItem(item, context),
       ),
     );
+  }
+
+  /// 处理置顶切换
+  Future<void> _handleTogglePin(ClipboardItem item, BuildContext context) async {
+    try {
+      if (item.pinned) {
+        await widget.storageService.unpinItem(item.id);
+      } else {
+        await widget.storageService.pinItem(item.id);
+      }
+      await widget.controller.loadHistory();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(item.pinned ? '已取消置顶' : '已置顶'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('操作失败: $e'),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   /// 构建空状态
@@ -388,36 +309,11 @@ class _ClipboardHistoryTabState extends State<ClipboardHistoryTab> {
     required String subtitle,
     Color? iconColor,
   }) {
-    return Center(
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 48,
-              color: iconColor ?? Colors.grey,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                color: iconColor != null ? Colors.grey[700] : Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+    return EmptyStateView(
+      icon: icon,
+      title: title,
+      subtitles: [subtitle],
+      iconColor: iconColor,
     );
   }
 
@@ -432,8 +328,6 @@ class _ClipboardHistoryTabState extends State<ClipboardHistoryTab> {
         return Icons.code;
       case Category.file:
         return Icons.insert_drive_file;
-      case Category.image:
-        return Icons.image;
     }
   }
 
@@ -448,8 +342,6 @@ class _ClipboardHistoryTabState extends State<ClipboardHistoryTab> {
         return Colors.green;
       case Category.file:
         return Colors.orange;
-      case Category.image:
-        return Colors.purple;
     }
   }
 

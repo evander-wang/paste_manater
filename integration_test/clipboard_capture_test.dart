@@ -14,8 +14,8 @@ void main() {
     late StorageService storageService;
 
     setUp(() async {
-      monitor = ClipboardMonitor();
       storageService = StorageService();
+      monitor = ClipboardMonitor(storageService: storageService);
       await storageService.clear(); // 确保从干净状态开始
     });
 

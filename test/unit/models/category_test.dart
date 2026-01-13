@@ -31,17 +31,6 @@ void main() {
       expect(category, equals(Category.text));
     });
 
-    test('应该将图像类型识别为图像', () {
-      // Arrange & Act
-      final category = CategoryClassifier.classify(
-        'any content',
-        ClipboardDataType.image,
-      );
-
-      // Assert
-      expect(category, equals(Category.image));
-    });
-
     test('应该将 Unix 文件路径识别为文件', () {
       // Arrange & Act
       final category = CategoryClassifier.classify(
@@ -105,7 +94,6 @@ void main() {
     test('应该正确获取分类显示名称', () {
       // Act & Assert
       expect(CategoryClassifier.getDisplayName(Category.text), equals('文本'));
-      expect(CategoryClassifier.getDisplayName(Category.image), equals('图像'));
       expect(CategoryClassifier.getDisplayName(Category.link), equals('链接'));
       expect(CategoryClassifier.getDisplayName(Category.code), equals('代码'));
       expect(CategoryClassifier.getDisplayName(Category.file), equals('文件'));
@@ -113,11 +101,10 @@ void main() {
 
     test('应该正确获取分类优先级', () {
       // Act & Assert
-      expect(CategoryClassifier.getPriority(Category.image), equals(1));
-      expect(CategoryClassifier.getPriority(Category.link), equals(2));
-      expect(CategoryClassifier.getPriority(Category.file), equals(3));
-      expect(CategoryClassifier.getPriority(Category.code), equals(4));
-      expect(CategoryClassifier.getPriority(Category.text), equals(5));
+      expect(CategoryClassifier.getPriority(Category.link), equals(1));
+      expect(CategoryClassifier.getPriority(Category.file), equals(2));
+      expect(CategoryClassifier.getPriority(Category.code), equals(3));
+      expect(CategoryClassifier.getPriority(Category.text), equals(4));
     });
   });
 }

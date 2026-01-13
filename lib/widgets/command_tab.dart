@@ -3,6 +3,7 @@ import 'package:paste_manager/models/command.dart';
 import 'package:paste_manager/services/command_service.dart';
 import 'package:paste_manager/services/clipboard_monitor.dart';
 import 'package:paste_manager/widgets/command_list_item.dart';
+import 'package:paste_manager/ui/empty_state_view.dart';
 import 'dart:async';
 
 /// CommandTab - 常用命令标签页
@@ -104,48 +105,14 @@ class _CommandTabState extends State<CommandTab> {
 
   /// 构建空状态视图
   Widget _buildEmptyView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.folder_open,
-            size: 64,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            '暂无常用命令',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '请在应用支持目录中创建 .paste_manager.json 文件',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
-          ),
-          Text(
-            '或在 ~/.paste_manager.json 创建后重启应用',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[500],
-                ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            '格式示例:',
-            style: Theme.of(context).textTheme.labelMedium,
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(16),
-            margin: const EdgeInsets.symmetric(horizontal: 32),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Text(
-              '''{
+    return EmptyStateView(
+      icon: Icons.folder_open,
+      title: '暂无常用命令',
+      subtitles: [
+        '请在应用支持目录中创建 .paste_manager.json 文件',
+        '或在 ~/.paste_manager.json 创建后重启应用',
+      ],
+      exampleCode: '''{
   "version": "1.0",
   "commands": [
     {
@@ -158,51 +125,24 @@ class _CommandTabState extends State<CommandTab> {
     }
   ]
 }''',
-              style: TextStyle(fontFamily: 'monospace', fontSize: 12),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
   /// 构建错误视图
   Widget _buildErrorView() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              '加载失败',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _errorMessage ?? '未知错误',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
-                  ),
-            ),
-            const SizedBox(height: 16),
-            if (_errorMessage?.contains('JSON') == true)
-              Text(
-                '请检查 ~/.paste_manager.json 文件格式是否正确',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[500],
-                    ),
-              ),
-          ],
-        ),
-      ),
+    final errorHints = <String>[
+      _errorMessage ?? '未知错误',
+    ];
+
+    if (_errorMessage?.contains('JSON') == true) {
+      errorHints.add('请检查 ~/.paste_manager.json 文件格式是否正确');
+    }
+
+    return EmptyStateView(
+      icon: Icons.error_outline,
+      title: '加载失败',
+      subtitles: errorHints,
+      iconColor: Colors.red[400],
     );
   }
 

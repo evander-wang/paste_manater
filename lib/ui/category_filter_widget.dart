@@ -100,8 +100,6 @@ class CategoryFilterWidget extends StatelessWidget {
         return '代码';
       case Category.file:
         return '文件';
-      case Category.image:
-        return '图像';
     }
   }
 }
