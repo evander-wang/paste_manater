@@ -184,6 +184,8 @@ class HotkeyPlugin: NSObject, FlutterPlugin {
         self.hideWindow(result: result)
       case "toggleWindow":
         self.toggleWindow(result: result)
+      case "resignFocus":
+        self.resignFocus(result: result)
       default:
         print("⚠️ HotkeyPlugin 未知方法: \(call.method)")
         result(FlutterMethodNotImplemented)
@@ -382,6 +384,21 @@ class HotkeyPlugin: NSObject, FlutterPlugin {
       } else {
         result(false)
       }
+    }
+  }
+
+  private func resignFocus(result: @escaping FlutterResult) {
+    DispatchQueue.main.async { [weak self] in
+      guard self?.mainWindow != nil else {
+        print("⚠️ resignFocus: 无法获取窗口引用")
+        result(false)
+        return
+      }
+
+      print("🔔 resignFocus: 让窗口失去焦点")
+      // 让应用失去焦点,这会触发 windowDidResignKey 回调自动最小化窗口
+      NSApp.hide(nil)
+      result(true)
     }
   }
 

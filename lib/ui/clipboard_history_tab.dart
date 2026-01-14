@@ -234,6 +234,13 @@ class _ClipboardHistoryTabState extends State<ClipboardHistoryTab> {
     widget.clipboardMonitor.markOwnCopy(item.content);
     await Clipboard.setData(ClipboardData(text: item.content));
 
+    // 让窗口失去焦点,会自动触发最小化
+    try {
+      await const MethodChannel('paste_manager/hotkey').invokeMethod('resignFocus');
+    } on PlatformException catch (e) {
+      debugPrint('失去焦点失败: $e');
+    }
+
     if (mounted) {
       final preview = item.content.length > 20
           ? '${item.content.substring(0, 20)}...'
