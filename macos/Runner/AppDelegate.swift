@@ -604,6 +604,54 @@ class StatusItemPlugin: NSObject, FlutterPlugin {
   private func setupMenu() {
     let menu = NSMenu()
 
+    // 使用说明（禁用，仅显示）
+    let usageInfoItem = NSMenuItem(
+      title: "使用说明",
+      action: nil,
+      keyEquivalent: ""
+    )
+    usageInfoItem.isEnabled = false
+    menu.addItem(usageInfoItem)
+
+    // 安装说明（禁用，仅显示）
+    let installInfoItem = NSMenuItem(
+      title: "  安装: 拖拽到应用程序",
+      action: nil,
+      keyEquivalent: ""
+    )
+    installInfoItem.isEnabled = false
+    menu.addItem(installInfoItem)
+
+    // 安全隐私说明（禁用，仅显示）
+    let securityInfoItem = NSMenuItem(
+      title: "  首次打开: 设置 → 隐私与安全性 → 仍要打开",
+      action: nil,
+      keyEquivalent: ""
+    )
+    securityInfoItem.isEnabled = false
+    menu.addItem(securityInfoItem)
+
+    // 快捷键说明（禁用，仅显示）
+    let hotkeyInfoItem = NSMenuItem(
+      title: "  快捷键: ⌘⇧V 打开/关闭",
+      action: nil,
+      keyEquivalent: ""
+    )
+    hotkeyInfoItem.isEnabled = false
+    menu.addItem(hotkeyInfoItem)
+
+    // 置顶功能说明（禁用，仅显示）
+    let pinInfoItem = NSMenuItem(
+      title: "  置顶: 左键长按内容 → 置顶/取消置顶",
+      action: nil,
+      keyEquivalent: ""
+    )
+    pinInfoItem.isEnabled = false
+    menu.addItem(pinInfoItem)
+
+    // 分隔线
+    menu.addItem(NSMenuItem.separator())
+
     // 退出应用
     let quitItem = NSMenuItem(
       title: "退出",
