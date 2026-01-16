@@ -1,2 +1,5 @@
 #include "../../Flutter/Flutter-Release.xcconfig"
 #include "Warnings.xcconfig"
+
+// 禁用图标 tree-shaking 以支持动态图标（自定义分类功能）
+FLUTTER_BUILD_ARGS=--no-tree-shake-icons

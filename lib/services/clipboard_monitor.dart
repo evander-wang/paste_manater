@@ -331,7 +331,7 @@ class ClipboardMonitor {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       content: content,
       type: type,
-      category: category,
+      categoryId: category.name,
       timestamp: DateTime.now(),
       hash: hash,
       size: size,

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'services/storage_service.dart';
 import 'services/clipboard_monitor.dart';
 import 'services/hotkey_manager.dart';
+import 'services/category_manager.dart';
+import 'services/category_storage.dart';
 import 'controllers/clipboard_history_controller.dart';
 import 'ui/clipboard_history_tab.dart';
 import 'ui/theme/app_theme.dart';
@@ -21,10 +23,16 @@ void main() async {
     storageService: storageService,
   );
 
+  // 初始化分类管理器
+  final categoryManager = CategoryManager(
+    storage: CategoryStorage(),
+  );
+
   runApp(PasteManagerApp(
     clipboardMonitor: clipboardMonitor,
     hotkeyManager: hotkeyManager,
     storageService: storageService,
+    categoryManager: categoryManager,
   ));
 }
 
@@ -32,12 +40,14 @@ class PasteManagerApp extends StatefulWidget {
   final ClipboardMonitor clipboardMonitor;
   final HotkeyManager hotkeyManager;
   final StorageService storageService;
+  final CategoryManager categoryManager;
 
   const PasteManagerApp({
     super.key,
     required this.clipboardMonitor,
     required this.hotkeyManager,
     required this.storageService,
+    required this.categoryManager,
   });
 
   @override
@@ -110,6 +120,7 @@ class _PasteManagerAppState extends State<PasteManagerApp> {
           controller: _historyController,
           clipboardMonitor: widget.clipboardMonitor,
           storageService: widget.storageService,
+          categoryManager: widget.categoryManager,
         ),
       ),
     );

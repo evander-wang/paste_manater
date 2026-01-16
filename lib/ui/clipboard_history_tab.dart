@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/clipboard_item.dart';
-import '../models/category.dart';
+import '../models/clipboard_history.dart';
 import '../controllers/clipboard_history_controller.dart';
 import '../services/clipboard_monitor.dart';
 import '../services/storage_service.dart';
+import '../services/category_manager.dart';
 import 'search_bar_widget.dart';
 import 'category_filter_widget.dart';
 import 'clipboard_list_item_widget.dart';
 import 'clipboard_context_menu.dart';
+import 'move_to_category_dialog.dart';
 import 'empty_state_view.dart';
 
 /// 剪贴板历史标签页组件
@@ -22,11 +24,15 @@ class ClipboardHistoryTab extends StatefulWidget {
   /// 存储服务
   final StorageService storageService;
 
+  /// 分类管理器
+  final CategoryManager categoryManager;
+
   const ClipboardHistoryTab({
     super.key,
     required this.controller,
     required this.clipboardMonitor,
     required this.storageService,
+    required this.categoryManager,
   });
 
   @override
@@ -71,13 +77,12 @@ class _ClipboardHistoryTabState extends State<ClipboardHistoryTab> {
                     ),
                     // 分类过滤器
                     CategoryFilterWidget(
-                      selectedCategory: widget.controller.selectedCategory,
-                      categoryCounts: widget.controller.categoryCounts,
+                      selectedCategoryId: widget.controller.selectedCategoryId,
+                      categoryCounts: _convertCategoryCounts(),
                       totalCount: widget.controller.totalCount,
-                      getIcon: _getCategoryIcon,
-                      getColor: _getCategoryColor,
-                      onCategoryToggle: (category) {
-                        widget.controller.toggleCategory(category, (fn) => setState(fn));
+                      categoryManager: widget.categoryManager,
+                      onCategoryToggle: (categoryId) {
+                        widget.controller.toggleCategory(categoryId, (fn) => setState(fn));
                       },
                     ),
                     // 统计信息和清空按钮
@@ -231,6 +236,9 @@ class _ClipboardHistoryTabState extends State<ClipboardHistoryTab> {
 
   /// 复制到剪贴板
   Future<void> _copyToClipboard(ClipboardItem item, BuildContext context) async {
+    // 在异步操作之前保存 ScaffoldMessenger 的引用
+    final messenger = ScaffoldMessenger.of(context);
+
     widget.clipboardMonitor.markOwnCopy(item.content);
     await Clipboard.setData(ClipboardData(text: item.content));
 
@@ -245,7 +253,7 @@ class _ClipboardHistoryTabState extends State<ClipboardHistoryTab> {
       final preview = item.content.length > 20
           ? '${item.content.substring(0, 20)}...'
           : item.content;
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(
           content: Text('✅ 已复制: $preview'),
           duration: const Duration(seconds: 2),
@@ -256,9 +264,12 @@ class _ClipboardHistoryTabState extends State<ClipboardHistoryTab> {
 
   /// 删除项目
   Future<void> _deleteItem(ClipboardItem item, BuildContext context) async {
+    // 在异步操作之前保存 ScaffoldMessenger 的引用
+    final messenger = ScaffoldMessenger.of(context);
+
     await widget.controller.deleteItem(item);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(content: Text('🗑️ 已删除')),
       );
     }
@@ -273,12 +284,17 @@ class _ClipboardHistoryTabState extends State<ClipboardHistoryTab> {
         onTogglePin: () => _handleTogglePin(item, context),
         onCopy: () => _copyToClipboard(item, context),
         onDelete: () => _deleteItem(item, context),
+        onMoveToCategory: () => _handleMoveToCategory(item, context),
       ),
     );
   }
 
   /// 处理置顶切换
   Future<void> _handleTogglePin(ClipboardItem item, BuildContext context) async {
+    // 在异步操作之前保存 ScaffoldMessenger 的引用
+    final messenger = ScaffoldMessenger.of(context);
+    final pinStateText = item.pinned ? '已取消置顶' : '已置顶';
+
     try {
       if (item.pinned) {
         await widget.storageService.unpinItem(item.id);
@@ -287,9 +303,9 @@ class _ClipboardHistoryTabState extends State<ClipboardHistoryTab> {
       }
       await widget.controller.loadHistory();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
-            content: Text(item.pinned ? '已取消置顶' : '已置顶'),
+            content: Text(pinStateText),
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
           ),
@@ -297,7 +313,7 @@ class _ClipboardHistoryTabState extends State<ClipboardHistoryTab> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
             content: Text('操作失败: $e'),
             duration: const Duration(seconds: 3),
@@ -325,48 +341,87 @@ class _ClipboardHistoryTabState extends State<ClipboardHistoryTab> {
   }
 
   /// 获取分类图标
-  IconData _getCategoryIcon(Category category) {
-    switch (category) {
-      case Category.text:
-        return Icons.text_snippet;
-      case Category.link:
-        return Icons.link;
-      case Category.code:
-        return Icons.code;
-      case Category.file:
-        return Icons.insert_drive_file;
+  IconData _getCategoryIcon(String categoryId) {
+    final category = widget.categoryManager.getCategoryById(categoryId);
+    if (category != null) {
+      return category.icon;
     }
+    // 默认图标
+    return Icons.text_snippet;
   }
 
   /// 获取分类颜色
-  Color _getCategoryColor(Category category) {
-    switch (category) {
-      case Category.text:
-        return Colors.blueGrey;
-      case Category.link:
-        return Colors.blue;
-      case Category.code:
-        return Colors.green;
-      case Category.file:
-        return Colors.orange;
+  Color _getCategoryColor(String categoryId) {
+    final category = widget.categoryManager.getCategoryById(categoryId);
+    if (category != null) {
+      return category.color;
     }
+    // 默认颜色
+    return Colors.blueGrey;
   }
 
-  /// 格式化时间戳
-  String _formatTimestamp(DateTime timestamp) {
-    final now = DateTime.now();
-    final difference = now.difference(timestamp);
+  /// 转换分类计数从 Map<Category, int> 到 Map<String, int>
+  Map<String, int> _convertCategoryCounts() {
+    return widget.controller.categoryCounts;
+  }
 
-    if (difference.inMinutes < 1) {
-      return '刚刚';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}分钟前';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}小时前';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays}天前';
-    } else {
-      return '${timestamp.month}月${timestamp.day}日';
+  /// 处理移动到分类
+  Future<void> _handleMoveToCategory(ClipboardItem item, BuildContext context) async {
+    // 在显示 dialog 之前保存 ScaffoldMessenger 的引用
+    final messenger = ScaffoldMessenger.of(context);
+
+    final targetCategoryId = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => MoveToCategoryDialog(
+        categoryManager: widget.categoryManager,
+        currentCategoryId: item.categoryId,
+      ),
+    );
+
+    if (targetCategoryId != null && mounted) {
+      try {
+        // 获取当前历史列表
+        final history = await widget.storageService.load();
+        final historyList = history.items.map((item) => item.toJson()).toList();
+
+        // 调用 CategoryManager 移动项目
+        await widget.categoryManager.moveItemToCategory(
+          historyList,
+          item.id,
+          targetCategoryId,
+        );
+
+        // 更新历史记录
+        final updatedHistory = ClipboardHistory(
+          initialItems: historyList.map((json) => ClipboardItem.fromJson(json)).toList(),
+          maxItems: history.maxItems,
+          maxSize: history.maxSize,
+        );
+
+        // 保存更新后的历史列表
+        await widget.storageService.save(updatedHistory);
+
+        // 刷新UI
+        await widget.controller.loadHistory();
+
+        if (mounted) {
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text('✅ 已移动到分类'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      } on Exception catch (e) {
+        if (mounted) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('移动失败: $e'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
     }
   }
 }

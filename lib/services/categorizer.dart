@@ -5,32 +5,24 @@ import '../models/category.dart' as models;
 ///
 /// 提供基于内容的自动分类功能
 class Categorizer {
-  /// 分类剪贴板项目
+  /// 分类剪贴板项目并返回分类ID
   ///
   /// 根据项目内容和类型自动分类
-  static models.Category classifyItem(ClipboardItem item) {
-    return models.CategoryClassifier.classify(
+  static String classifyItem(ClipboardItem item) {
+    final category = models.CategoryClassifier.classify(
       item.content,
       _mapItemTypeToDataType(item.type),
     );
+    return category.name;
   }
 
   /// 批量分类项目
   static List<ClipboardItem> classifyItems(List<ClipboardItem> items) {
     return items.map((item) {
-      final category = classifyItem(item);
+      final categoryId = classifyItem(item);
       // 返回新项目（如果分类不同）
-      if (item.category != category) {
-        return ClipboardItem(
-          id: item.id,
-          content: item.content,
-          type: item.type,
-          category: category,
-          timestamp: item.timestamp,
-          hash: item.hash,
-          size: item.size,
-          sourceApp: item.sourceApp,
-        );
+      if (item.categoryId != categoryId) {
+        return item.copyWith(categoryId: categoryId);
       }
       return item;
     }).toList();
@@ -48,12 +40,12 @@ class Categorizer {
   }
 
   /// 获取分类统计信息
-  static Map<models.Category, int> getCategoryStats(
+  static Map<String, int> getCategoryStats(
       List<ClipboardItem> items) {
-    final stats = <models.Category, int>{};
+    final stats = <String, int>{};
 
     for (final item in items) {
-      stats[item.category] = (stats[item.category] ?? 0) + 1;
+      stats[item.categoryId] = (stats[item.categoryId] ?? 0) + 1;
     }
 
     return stats;
@@ -64,7 +56,7 @@ class Categorizer {
   /// 用于测试分类器的准确性
   static double calculateAccuracy(
     List<ClipboardItem> items,
-    Map<String, models.Category> expectedCategories,
+    Map<String, String> expectedCategoryIds,
   ) {
     if (items.isEmpty) {
       return 1.0;
@@ -73,8 +65,8 @@ class Categorizer {
     int correct = 0;
 
     for (final item in items) {
-      final expected = expectedCategories[item.content];
-      if (expected != null && item.category == expected) {
+      final expected = expectedCategoryIds[item.content];
+      if (expected != null && item.categoryId == expected) {
         correct++;
       }
     }

@@ -3,7 +3,7 @@ import '../models/clipboard_item.dart';
 
 /// 剪贴板项目上下文菜单
 ///
-/// 显示置顶、复制、删除等操作选项
+/// 显示置顶、复制、删除、移动到分类等操作选项
 class ClipboardContextMenu extends StatelessWidget {
   /// 剪贴板项目
   final ClipboardItem item;
@@ -17,12 +17,16 @@ class ClipboardContextMenu extends StatelessWidget {
   /// 删除回调
   final VoidCallback onDelete;
 
+  /// 移动到分类回调
+  final VoidCallback? onMoveToCategory;
+
   const ClipboardContextMenu({
     super.key,
     required this.item,
     required this.onTogglePin,
     required this.onCopy,
     required this.onDelete,
+    this.onMoveToCategory,
   });
 
   @override
@@ -32,6 +36,7 @@ class ClipboardContextMenu extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildPinMenuItem(context),
+          if (onMoveToCategory != null) _buildMoveToCategoryMenuItem(context),
           _buildCopyMenuItem(context),
           _buildDeleteMenuItem(context),
         ],
@@ -48,6 +53,18 @@ class ClipboardContextMenu extends StatelessWidget {
       onTap: () {
         Navigator.pop(context);
         onTogglePin();
+      },
+    );
+  }
+
+  /// 构建移动到分类菜单项
+  Widget _buildMoveToCategoryMenuItem(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.folder_open),
+      title: const Text('移动到'),
+      onTap: () {
+        Navigator.pop(context);
+        onMoveToCategory?.call();
       },
     );
   }

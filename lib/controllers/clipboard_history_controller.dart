@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/clipboard_history.dart';
-import '../models/category.dart';
 import '../models/search_query.dart';
 import '../models/clipboard_item.dart';
 import '../services/storage_service.dart';
@@ -28,8 +27,8 @@ class ClipboardHistoryController extends ChangeNotifier {
   /// 搜索关键词
   String _searchQuery = '';
 
-  /// 当前选中的分类过滤器(null 表示全部)
-  Category? _selectedCategory;
+  /// 当前选中的分类过滤器 ID (null 表示全部)
+  String? _selectedCategoryId;
 
   /// 搜索防抖定时器
   Timer? _searchDebounceTimer;
@@ -46,8 +45,8 @@ class ClipboardHistoryController extends ChangeNotifier {
   /// 获取搜索关键词
   String get searchQuery => _searchQuery;
 
-  /// 获取选中的分类
-  Category? get selectedCategory => _selectedCategory;
+  /// 获取选中的分类ID
+  String? get selectedCategoryId => _selectedCategoryId;
 
   /// 获取过滤后的历史记录
   ClipboardHistory get filteredHistory => _filteredHistory;
@@ -56,10 +55,10 @@ class ClipboardHistoryController extends ChangeNotifier {
   int get totalCount => _history.totalCount;
 
   /// 获取每个分类的计数
-  Map<Category, int> get categoryCounts {
-    final counts = <Category, int>{};
+  Map<String, int> get categoryCounts {
+    final counts = <String, int>{};
     for (final item in _history.items) {
-      counts[item.category] = (counts[item.category] ?? 0) + 1;
+      counts[item.categoryId] = (counts[item.categoryId] ?? 0) + 1;
     }
     return counts;
   }
@@ -121,12 +120,12 @@ class ClipboardHistoryController extends ChangeNotifier {
   }
 
   /// 切换分类过滤
-  void toggleCategory(Category? category, Function(VoidCallback) setState) {
+  void toggleCategory(String? categoryId, Function(VoidCallback) setState) {
     setState(() {
-      if (_selectedCategory == category) {
-        _selectedCategory = null;
+      if (_selectedCategoryId == categoryId) {
+        _selectedCategoryId = null;
       } else {
-        _selectedCategory = category;
+        _selectedCategoryId = categoryId;
       }
       _selectedIndex = -1;
     });
@@ -191,8 +190,8 @@ class ClipboardHistoryController extends ChangeNotifier {
     var results = _history.items.toList();
 
     // 1. 先应用分类过滤
-    if (_selectedCategory != null) {
-      results = results.where((item) => item.category == _selectedCategory).toList();
+    if (_selectedCategoryId != null) {
+      results = results.where((item) => item.categoryId == _selectedCategoryId).toList();
     }
 
     // 2. 再应用搜索过滤

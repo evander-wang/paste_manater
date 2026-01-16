@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/clipboard_item.dart';
-import '../models/category.dart';
 
 /// 剪贴板列表项组件
 ///
@@ -25,10 +24,10 @@ class ClipboardListItemWidget extends StatelessWidget {
   final VoidCallback onDelete;
 
   /// 获取分类图标的回调
-  final IconData Function(Category) getIcon;
+  final IconData Function(String) getIcon;
 
   /// 获取分类颜色的回调
-  final Color Function(Category) getColor;
+  final Color Function(String) getColor;
 
   const ClipboardListItemWidget({
     super.key,
@@ -106,8 +105,8 @@ class ClipboardListItemWidget extends StatelessWidget {
           ),
         if (item.pinned) const SizedBox(width: 4),
         Icon(
-          getIcon(item.category),
-          color: getColor(item.category),
+          getIcon(item.categoryId),
+          color: getColor(item.categoryId),
         ),
       ],
     );

@@ -1,5 +1,4 @@
 import 'clipboard_item.dart';
-import 'category.dart';
 
 /// 剪贴板历史集合模型
 ///
@@ -67,9 +66,9 @@ class ClipboardHistory {
     );
   }
 
-  /// 按分类过滤
-  List<ClipboardItem> filterBy(Category category) {
-    return items.where((item) => item.category == category).toList();
+  /// 按分类ID过滤
+  List<ClipboardItem> filterByCategoryId(String categoryId) {
+    return items.where((item) => item.categoryId == categoryId).toList();
   }
 
   /// 搜索项目

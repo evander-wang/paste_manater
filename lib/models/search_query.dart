@@ -1,4 +1,3 @@
-import 'category.dart';
 import 'clipboard_item.dart';
 
 /// 搜索查询模型
@@ -8,8 +7,8 @@ class SearchQuery {
   /// 搜索关键词（不区分大小写）
   final String query;
 
-  /// 可选分类过滤
-  final Category? category;
+  /// 可选分类过滤（分类ID）
+  final String? categoryId;
 
   /// 可选时间范围开始
   final DateTime? startTime;
@@ -19,7 +18,7 @@ class SearchQuery {
 
   SearchQuery({
     required this.query,
-    this.category,
+    this.categoryId,
     this.startTime,
     this.endTime,
   });
@@ -33,7 +32,7 @@ class SearchQuery {
     }
 
     // 分类过滤
-    if (category != null && item.category != category) {
+    if (categoryId != null && item.categoryId != categoryId) {
       return false;
     }
 
@@ -55,8 +54,8 @@ class SearchQuery {
   }
 
   /// 检查是否为空查询
-  bool get isEmpty => query.isEmpty && category == null;
+  bool get isEmpty => query.isEmpty && categoryId == null;
 
   /// 检查是否有过滤条件
-  bool get hasFilters => category != null || startTime != null || endTime != null;
+  bool get hasFilters => categoryId != null || startTime != null || endTime != null;
 }

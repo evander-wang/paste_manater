@@ -1,4 +1,3 @@
-import 'category.dart';
 import 'pin_status.dart';
 
 /// 剪贴板项目数据模型
@@ -14,8 +13,8 @@ class ClipboardItem extends PinStatus {
   /// 数据类型
   final ClipboardItemType type;
 
-  /// 自动分类结果
-  final Category category;
+  /// 分类ID (预置分类使用 Category.name 如 "text", 自定义分类使用 "custom_<timestamp>")
+  final String categoryId;
 
   /// 捕获时间戳（ISO 8601 格式）
   final DateTime timestamp;
@@ -41,7 +40,7 @@ class ClipboardItem extends PinStatus {
     required this.id,
     required this.content,
     required this.type,
-    required this.category,
+    required this.categoryId,
     required this.timestamp,
     required this.hash,
     required this.size,
@@ -59,10 +58,10 @@ class ClipboardItem extends PinStatus {
         (e) => e.name == json['type'],
         orElse: () => ClipboardItemType.text,
       ),
-      category: Category.values.firstWhere(
-        (e) => e.name == json['category'],
-        orElse: () => Category.text,
-      ),
+      // 向后兼容: 支持 'category' (旧) 和 'categoryId' (新) 两个字段
+      categoryId: json['categoryId'] as String? ??
+          json['category'] as String? ??
+          'text',
       timestamp: DateTime.parse(json['timestamp'] as String),
       hash: json['hash'] as String,
       size: json['size'] as int,
@@ -81,7 +80,7 @@ class ClipboardItem extends PinStatus {
       'id': id,
       'content': content,
       'type': type.name,
-      'category': category.name,
+      'categoryId': categoryId,
       'timestamp': timestamp.toIso8601String(),
       'hash': hash,
       'size': size,
@@ -96,7 +95,7 @@ class ClipboardItem extends PinStatus {
     String? id,
     String? content,
     ClipboardItemType? type,
-    Category? category,
+    String? categoryId,
     DateTime? timestamp,
     String? hash,
     int? size,
@@ -109,7 +108,7 @@ class ClipboardItem extends PinStatus {
       id: id ?? this.id,
       content: content ?? this.content,
       type: type ?? this.type,
-      category: category ?? this.category,
+      categoryId: categoryId ?? this.categoryId,
       timestamp: timestamp ?? this.timestamp,
       hash: hash ?? this.hash,
       size: size ?? this.size,
