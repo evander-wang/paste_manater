@@ -17,7 +17,7 @@ class AutoCaptureRule {
   const AutoCaptureRule({
     this.deduplicationWindow = const Duration(seconds: 5),
     this.minContentLength = 1,
-    this.maxContentLength = 10 * 1024 * 1024, // 10MB
+    this.maxContentLength = 2 * 1024 * 1024, // 10MB
     this.autoStart = true,
   });
 
