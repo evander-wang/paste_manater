@@ -144,13 +144,13 @@ class ClipboardListItemWidget extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildActionButton(
-          context,
-          icon: Icons.copy_outlined,
-          onTap: onCopy,
-          tooltip: '复制',
-        ),
-        const SizedBox(width: 4),
+        // _buildActionButton(
+        //   context,
+        //   icon: Icons.copy_outlined,
+        //   onTap: onCopy,
+        //   tooltip: '复制',
+        // ),
+        // const SizedBox(width: 4),
         _buildActionButton(
           context,
           icon: Icons.delete_outline,
