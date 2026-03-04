@@ -187,13 +187,23 @@ class _ClipboardHistoryTabState extends State<ClipboardHistoryTab> {
     return ClipboardListItemWidget(
       item: item,
       isSelected: isSelected,
-      onTap: () => _copyToClipboard(item, context),
+      onTap: () => _selectItem(item, context),
+      onDoubleTap: () => _copyToClipboard(item, context),
       onLongPress: () => _showContextMenu(item, context),
       onCopy: () => _copyToClipboard(item, context),
       onDelete: () => _deleteItem(item, context),
       getIcon: _getCategoryIcon,
       getColor: _getCategoryColor,
     );
+  }
+
+  /// 选中项目
+  void _selectItem(ClipboardItem item, BuildContext context) {
+    final filtered = widget.controller.filteredHistory;
+    final index = filtered.items.indexOf(item);
+    if (index >= 0) {
+      widget.controller.setSelectedIndex(index);
+    }
   }
 
   /// 处理键盘事件

@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../models/clipboard_item.dart';
-import '../models/category.dart';
 import '../models/clipboard_history.dart' as models;
 import '../models/auto_capture_rule.dart';
+import '../models/category.dart' as models;
 import '../services/storage_service.dart';
 import '../services/category_detector.dart';
 
@@ -81,7 +82,7 @@ class ClipboardMonitor {
     try {
       await _platform.invokeMethod('startMonitoring');
     } catch (e) {
-      print('启动原生监听器失败: $e');
+      debugPrint('启动原生监听器失败: $e');
     }
 
     // 初始化当前剪贴板状态（但不处理初始内容）
@@ -101,10 +102,10 @@ class ClipboardMonitor {
         final data = Map<String, dynamic>.from(result as Map);
         _currentData = data['content'] as String?;
         _currentChangeCount = data['changeCount'] as int?;
-        print('✅ 剪贴板监听已初始化（不记录启动时的现有内容）');
+        debugPrint('✅ 剪贴板监听已初始化（不记录启动时的现有内容）');
       }
     } catch (e) {
-      print('初始化剪贴板状态失败: $e');
+      debugPrint('初始化剪贴板状态失败: $e');
     }
   }
 
@@ -117,7 +118,7 @@ class ClipboardMonitor {
     // 启动基础监听
     await start();
 
-    print('✅ 自动监听已启动（去重窗口: ${_captureRule!.deduplicationWindow.inSeconds}秒）');
+    debugPrint('✅ 自动监听已启动（去重窗口: ${_captureRule!.deduplicationWindow.inSeconds}秒）');
   }
 
   /// 停止监听
@@ -133,7 +134,7 @@ class ClipboardMonitor {
     try {
       await _platform.invokeMethod('stopMonitoring');
     } catch (e) {
-      print('停止原生监听器失败: $e');
+      debugPrint('停止原生监听器失败: $e');
     }
   }
 
@@ -143,7 +144,7 @@ class ClipboardMonitor {
       // 检查是否是待处理的自己的复制操作（标志位检测）
       if (_isPendingOwnCopy) {
         _isPendingOwnCopy = false; // 清除标志
-        print('⏭️  跳过自己的复制操作（标志位检测）');
+        debugPrint('⏭️  跳过自己的复制操作（标志位检测）');
 
         // 重要：获取并更新当前数据，避免下次轮询时重复记录
         final result = await _platform.invokeMethod('getClipboardData');
@@ -186,7 +187,7 @@ class ClipboardMonitor {
         }
       }
     } catch (e) {
-      print('检查剪贴板失败: $e');
+      debugPrint('检查剪贴板失败: $e');
     }
   }
 
@@ -195,18 +196,18 @@ class ClipboardMonitor {
     String content,
     String? sourceApp,
   ) async {
-    print('🔍 [DEBUG] _processNewContent 被调用，内容: "${content.substring(0, content.length > 20 ? 20 : content.length)}..."');
+    debugPrint('🔍 _processNewContent 被调用，内容: "${content.substring(0, content.length > 20 ? 20 : content.length)}..."');
     _captureStopwatch..reset()..start();
 
     try {
       // 验证内容长度（如果设置了自动捕获规则）
       if (_captureRule != null && !_captureRule!.shouldCapture(content)) {
-        print('⚠️  [DEBUG] 内容不符合捕获规则');
+        debugPrint('⚠️  [DEBUG] 内容不符合捕获规则');
         if (content.isEmpty) {
           return; // 跳过空内容
         }
         if (content.length > _captureRule!.maxContentLength) {
-          print('⚠️  内容过大（${content.length} 字符），已跳过');
+          debugPrint('⚠️  内容过大（${content.length} 字符），已跳过');
           return;
         }
       }
@@ -241,12 +242,12 @@ class ClipboardMonitor {
 
       final elapsed = _captureStopwatch.elapsedMilliseconds;
       if (elapsed > 100) {
-        print('⚠️  [Performance] 捕获耗时 ${elapsed}ms');
+        debugPrint('⚠️  [Performance] 捕获耗时 ${elapsed}ms');
       } else {
-        print('📋 自动捕获: "${content.substring(0, content.length > 20 ? 20 : content.length)}..." (${elapsed}ms)');
+        debugPrint('📋 自动捕获: "${content.substring(0, content.length > 20 ? 20 : content.length)}..." (${elapsed}ms)');
       }
     } catch (e) {
-      print('处理剪贴板内容失败: $e');
+      debugPrint('处理剪贴板内容失败: $e');
     } finally {
       _captureStopwatch.stop();
     }
@@ -255,7 +256,7 @@ class ClipboardMonitor {
   /// 标记自己的复制操作
   void markOwnCopy(String content) {
     _isPendingOwnCopy = true; // 设置标志位
-    print('📋 标记自己的复制操作（标志位已设置）: "${content.substring(0, content.length > 20 ? 20 : content.length)}..."');
+    debugPrint('📋 标记自己的复制操作（标志位已设置）: "${content.substring(0, content.length > 20 ? 20 : content.length)}..."');
   }
 
   /// 检查是否在去重缓存中
@@ -301,10 +302,10 @@ class ClipboardMonitor {
     final newCount = history.items.length;
     if (newCount < oldCount) {
       final deletedCount = oldCount - newCount;
-      print('🗑️  为节省空间已删除 $deletedCount 条旧记录');
+      debugPrint('🗑️  为节省空间已删除 $deletedCount 条旧记录');
     }
 
-    print('💾 历史已保存（${history.items.length} 条记录）');
+    debugPrint('💾 历史已保存（${history.items.length} 条记录）');
   }
 
   /// 创建剪贴板项目
@@ -322,7 +323,7 @@ class ClipboardMonitor {
     final category = _classifyContent(content, type);
 
     // 调试：输出分类结果
-    print('🏷️  [DEBUG] 内容分类: "$content" → ${category.name} (${type.name})');
+    debugPrint('🏷️  [DEBUG] 内容分类: "$content" → ${category.name} (${type.name})');
 
     // 计算大小
     final size = utf8.encode(content).length;
@@ -357,7 +358,7 @@ class ClipboardMonitor {
   }
 
   /// 分类内容（使用智能 CategoryDetector）
-  Category _classifyContent(String content, ClipboardItemType type) {
+  models.Category _classifyContent(String content, ClipboardItemType type) {
     // 使用新的 CategoryDetector 进行智能分类
     // CategoryDetector 会自动识别：链接 > 文件 > 代码 > 文本
     return CategoryDetector.detect(content);

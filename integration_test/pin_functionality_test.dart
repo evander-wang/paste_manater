@@ -4,7 +4,6 @@ import 'package:paste_manager/services/pin_service.dart';
 import 'package:paste_manager/services/storage_service.dart';
 import 'package:paste_manager/models/clipboard_item.dart';
 import 'package:paste_manager/models/clipboard_history.dart';
-import 'package:paste_manager/models/category.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +31,7 @@ void main() {
         id: 'test-item-1',
         content: '普通项目1',
         type: ClipboardItemType.text,
-        category: Category.text,
+        categoryId: 'text',
         timestamp: DateTime.now(),
         hash: 'hash-1',
         size: 100,
@@ -42,7 +41,7 @@ void main() {
         id: 'test-item-2',
         content: '将要置顶的项目',
         type: ClipboardItemType.text,
-        category: Category.text,
+        categoryId: 'text',
         timestamp: DateTime.now(),
         hash: 'hash-2',
         size: 100,
@@ -52,7 +51,7 @@ void main() {
         id: 'test-item-3',
         content: '普通项目3',
         type: ClipboardItemType.text,
-        category: Category.text,
+        categoryId: 'text',
         timestamp: DateTime.now(),
         hash: 'hash-3',
         size: 100,
@@ -108,7 +107,7 @@ void main() {
         id: 'pinned-item',
         content: '已置顶的项目',
         type: ClipboardItemType.text,
-        category: Category.text,
+        categoryId: 'text',
         timestamp: DateTime.now(),
         hash: 'pinned-hash',
         size: 100,
@@ -146,7 +145,7 @@ void main() {
         id: 'persistent-item',
         content: '持久化测试项目',
         type: ClipboardItemType.text,
-        category: Category.text,
+        categoryId: 'text',
         timestamp: DateTime.now(),
         hash: 'persistent-hash',
         size: 100,
@@ -177,7 +176,7 @@ void main() {
         id: 'item-1',
         content: '项目1',
         type: ClipboardItemType.text,
-        category: Category.text,
+        categoryId: 'text',
         timestamp: DateTime.now(),
         hash: 'hash-1',
         size: 100,
@@ -187,7 +186,7 @@ void main() {
         id: 'item-2',
         content: '项目2',
         type: ClipboardItemType.text,
-        category: Category.text,
+        categoryId: 'text',
         timestamp: DateTime.now(),
         hash: 'hash-2',
         size: 100,
@@ -197,7 +196,7 @@ void main() {
         id: 'item-3',
         content: '项目3',
         type: ClipboardItemType.text,
-        category: Category.text,
+        categoryId: 'text',
         timestamp: DateTime.now(),
         hash: 'hash-3',
         size: 100,
@@ -242,7 +241,7 @@ void main() {
             id: 'item-$i',
             content: '测试内容 $i',
             type: ClipboardItemType.text,
-            category: Category.text,
+            categoryId: 'text',
             timestamp: DateTime.now(),
             hash: 'hash-$i',
             size: 100,
@@ -271,7 +270,7 @@ void main() {
       expect(stopwatch.elapsedMilliseconds, lessThan(500),
         reason: '置顶操作应该在500ms内完成');
 
-      print('✅ 置顶操作耗时: ${stopwatch.elapsedMilliseconds}ms');
+      debugPrint('✅ 置顶操作耗时: ${stopwatch.elapsedMilliseconds}ms');
     });
 
     test('混合置顶和未置顶项目应该正确显示', () async {
@@ -280,7 +279,7 @@ void main() {
         id: 'item-1',
         content: '未置顶项目1',
         type: ClipboardItemType.text,
-        category: Category.text,
+        categoryId: 'text',
         timestamp: DateTime.now(),
         hash: 'hash-1',
         size: 100,
@@ -290,7 +289,7 @@ void main() {
         id: 'item-2',
         content: '置顶项目',
         type: ClipboardItemType.text,
-        category: Category.text,
+        categoryId: 'text',
         timestamp: DateTime.now(),
         hash: 'hash-2',
         size: 100,
@@ -302,7 +301,7 @@ void main() {
         id: 'item-3',
         content: '未置顶项目2',
         type: ClipboardItemType.text,
-        category: Category.text,
+        categoryId: 'text',
         timestamp: DateTime.now(),
         hash: 'hash-3',
         size: 100,

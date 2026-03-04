@@ -104,10 +104,12 @@ class StorageService {
     }
   }
 
-  /// 置顶剪贴板历史项 (T054)
-  ///
-  /// 更新指定项目的置顶状态并保存
-  Future<ClipboardHistory> pinItem(String itemId) async {
+  /// 更新项目的置顶状态（私有方法）
+  Future<ClipboardHistory> _updateItemPinnedStatus(
+    String itemId,
+    bool pinned,
+    {bool clearPinnedAt = false, DateTime? pinnedAt}
+  ) async {
     final history = await load();
     final index = history.items.indexWhere((item) => item.id == itemId);
 
@@ -117,8 +119,9 @@ class StorageService {
 
     final item = history.items[index];
     final updated = item.copyWith(
-      pinned: true,
-      pinnedAt: DateTime.now(),
+      pinned: pinned,
+      pinnedAt: pinnedAt,
+      clearPinnedAt: clearPinnedAt,
     );
 
     final updatedItems = List<ClipboardItem>.from(history.items);
@@ -134,34 +137,22 @@ class StorageService {
     return updatedHistory;
   }
 
+  /// 置顶剪贴板历史项 (T054)
+  Future<ClipboardHistory> pinItem(String itemId) async {
+    return _updateItemPinnedStatus(
+      itemId,
+      true,
+      pinnedAt: DateTime.now(),
+    );
+  }
+
   /// 取消置顶剪贴板历史项 (T055)
-  ///
-  /// 取消指定项目的置顶状态并保存
   Future<ClipboardHistory> unpinItem(String itemId) async {
-    final history = await load();
-    final index = history.items.indexWhere((item) => item.id == itemId);
-
-    if (index == -1) {
-      throw ArgumentError('项目不存在: $itemId');
-    }
-
-    final item = history.items[index];
-    final updated = item.copyWith(
-      pinned: false,
-      clearPinnedAt: true, // 使用 clearPinnedAt 清除置顶时间
+    return _updateItemPinnedStatus(
+      itemId,
+      false,
+      clearPinnedAt: true,
     );
-
-    final updatedItems = List<ClipboardItem>.from(history.items);
-    updatedItems[index] = updated;
-
-    final updatedHistory = ClipboardHistory(
-      initialItems: updatedItems,
-      maxItems: history.maxItems,
-      maxSize: history.maxSize,
-    );
-    await save(updatedHistory);
-
-    return updatedHistory;
   }
 }
 

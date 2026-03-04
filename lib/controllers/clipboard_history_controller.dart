@@ -164,6 +164,12 @@ class ClipboardHistoryController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 设置选中索引
+  void setSelectedIndex(int index) {
+    _selectedIndex = index;
+    notifyListeners();
+  }
+
   /// 复制选中项目
   Future<ClipboardItem?> getSelectedItem() async {
     if (_selectedIndex >= 0 && _selectedIndex < filteredHistory.items.length) {
@@ -185,6 +191,12 @@ class ClipboardHistoryController extends ChangeNotifier {
     await loadHistory();
   }
 
+  /// 搜索服务（复用实例）
+  final SearchService _searchService = SearchService();
+
+  /// 置顶服务（复用实例）
+  final PinService _pinService = PinService();
+
   /// 获取过滤后的历史记录(私有方法)
   ClipboardHistory get _filteredHistory {
     var results = _history.items.toList();
@@ -196,14 +208,12 @@ class ClipboardHistoryController extends ChangeNotifier {
 
     // 2. 再应用搜索过滤
     if (_searchQuery.isNotEmpty) {
-      final searchService = SearchService();
       final queryObj = SearchQuery(query: _searchQuery);
-      results = searchService.search(ClipboardHistory(initialItems: results), queryObj);
+      results = _searchService.search(ClipboardHistory(initialItems: results), queryObj);
     }
 
     // 3. 应用置顶排序(置顶项目在前,按置顶时间倒序)
-    final pinService = PinService();
-    results = pinService.sortByPinStatus(results);
+    results = _pinService.sortByPinStatus(results);
 
     return ClipboardHistory(initialItems: results);
   }

@@ -182,13 +182,13 @@ class _CategoryFilterWidgetState extends State<CategoryFilterWidget> {
         final buttonWidth = _calculateCategoryButtonWidth(availableWidth, categoryCount);
         final shouldScroll = _shouldEnableHorizontalScroll(availableWidth, categoryCount);
 
-        // T074N: 添加日志记录
-        print(
+        // T074N: 宽度适配日志（仅在调试模式）
+        debugPrint(
           'CategoryFilterWidget: 宽度适配 - '
           '可用宽度: ${availableWidth.toStringAsFixed(1)}px, '
           '分类数: $categoryCount, '
           '按钮宽度: ${buttonWidth.toStringAsFixed(1)}px, '
-          '启用滚动: $shouldScroll'
+          '启用滚动: $shouldScroll',
         );
 
         return Container(

@@ -329,68 +329,27 @@ class HotkeyManager {
 
   // 私有辅助方法
 
+  /// KeyCode 枚举索引到字符串的映射
+  static const List<String> _keyCodeStrings = [
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '?'
+  ];
+
   String _keyCodeToString(KeyCode keyCode) {
-    switch (keyCode) {
-      case KeyCode.a: return 'A';
-      case KeyCode.b: return 'B';
-      case KeyCode.c: return 'C';
-      case KeyCode.d: return 'D';
-      case KeyCode.e: return 'E';
-      case KeyCode.f: return 'F';
-      case KeyCode.g: return 'G';
-      case KeyCode.h: return 'H';
-      case KeyCode.i: return 'I';
-      case KeyCode.j: return 'J';
-      case KeyCode.k: return 'K';
-      case KeyCode.l: return 'L';
-      case KeyCode.m: return 'M';
-      case KeyCode.n: return 'N';
-      case KeyCode.o: return 'O';
-      case KeyCode.p: return 'P';
-      case KeyCode.q: return 'Q';
-      case KeyCode.r: return 'R';
-      case KeyCode.s: return 'S';
-      case KeyCode.t: return 'T';
-      case KeyCode.u: return 'U';
-      case KeyCode.v: return 'V';
-      case KeyCode.w: return 'W';
-      case KeyCode.x: return 'X';
-      case KeyCode.y: return 'Y';
-      case KeyCode.z: return 'Z';
-      case KeyCode.unknown: return '?';
+    final index = KeyCode.values.indexOf(keyCode);
+    if (index >= 0 && index < _keyCodeStrings.length) {
+      return _keyCodeStrings[index];
     }
+    return '?';
   }
 
   KeyCode _stringToKeyCode(String string) {
-    switch (string.toUpperCase()) {
-      case 'A': return KeyCode.a;
-      case 'B': return KeyCode.b;
-      case 'C': return KeyCode.c;
-      case 'D': return KeyCode.d;
-      case 'E': return KeyCode.e;
-      case 'F': return KeyCode.f;
-      case 'G': return KeyCode.g;
-      case 'H': return KeyCode.h;
-      case 'I': return KeyCode.i;
-      case 'J': return KeyCode.j;
-      case 'K': return KeyCode.k;
-      case 'L': return KeyCode.l;
-      case 'M': return KeyCode.m;
-      case 'N': return KeyCode.n;
-      case 'O': return KeyCode.o;
-      case 'P': return KeyCode.p;
-      case 'Q': return KeyCode.q;
-      case 'R': return KeyCode.r;
-      case 'S': return KeyCode.s;
-      case 'T': return KeyCode.t;
-      case 'U': return KeyCode.u;
-      case 'V': return KeyCode.v;
-      case 'W': return KeyCode.w;
-      case 'X': return KeyCode.x;
-      case 'Y': return KeyCode.y;
-      case 'Z': return KeyCode.z;
-      default: return KeyCode.unknown;
+    final upper = string.toUpperCase();
+    final index = _keyCodeStrings.indexOf(upper);
+    if (index >= 0 && index < KeyCode.values.length - 1) {
+      return KeyCode.values[index];
     }
+    return KeyCode.unknown;
   }
 
   String _modifierToString(KeyModifier modifier) {

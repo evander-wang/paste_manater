@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:paste_manager/models/clipboard_item.dart';
-import 'package:paste_manager/models/category.dart';
 import 'package:paste_manager/models/clipboard_history.dart';
 import 'package:paste_manager/services/storage_service.dart';
 import 'package:paste_manager/services/clipboard_monitor.dart';
@@ -39,24 +38,8 @@ void main() {
       final history = await storageService.load();
       expect(history.totalCount, greaterThan(0));
 
-      final textItems = history.filterBy(Category.text);
+      final textItems = history.filterByCategoryId('text');
       expect(textItems.isNotEmpty, isTrue);
-    });
-
-    testWidgets('应该捕获图像内容并存储到历史', (WidgetTester tester) async {
-      // Arrange
-      await monitor.start();
-
-      // Act: 模拟复制图像
-      await tester.pumpAndSettle();
-      // TODO: 模拟图像复制操作
-
-      await tester.pumpAndSettle(const Duration(milliseconds: 200));
-
-      // Assert
-      final history = await storageService.load();
-      final imageItems = history.filterBy(Category.image);
-      expect(imageItems.isNotEmpty, isTrue);
     });
 
     testWidgets('应该捕获 URL 并自动分类为链接', (WidgetTester tester) async {
@@ -71,7 +54,7 @@ void main() {
 
       // Assert
       final history = await storageService.load();
-      final linkItems = history.filterBy(Category.link);
+      final linkItems = history.filterByCategoryId('link');
       expect(linkItems.isNotEmpty, isTrue);
     });
 

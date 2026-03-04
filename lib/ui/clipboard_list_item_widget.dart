@@ -14,6 +14,9 @@ class ClipboardListItemWidget extends StatelessWidget {
   /// 点击回调
   final VoidCallback onTap;
 
+  /// 双击回调
+  final VoidCallback onDoubleTap;
+
   /// 长按回调
   final VoidCallback onLongPress;
 
@@ -34,6 +37,7 @@ class ClipboardListItemWidget extends StatelessWidget {
     required this.item,
     required this.isSelected,
     required this.onTap,
+    required this.onDoubleTap,
     required this.onLongPress,
     required this.onCopy,
     required this.onDelete,
@@ -57,6 +61,7 @@ class ClipboardListItemWidget extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: onTap,
+          onDoubleTap: onDoubleTap,
           onLongPress: onLongPress,
           child: Container(
             decoration: BoxDecoration(

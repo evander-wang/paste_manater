@@ -1,8 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:paste_manager/models/clipboard_history.dart';
 import 'package:paste_manager/models/clipboard_item.dart';
-import 'package:paste_manager/models/category.dart';
 import 'package:paste_manager/services/storage_service.dart';
 
 void main() {
@@ -30,7 +28,7 @@ void main() {
             id: 'test-id',
             content: 'test content',
             type: ClipboardItemType.text,
-            category: Category.text,
+            categoryId: 'text',
             timestamp: DateTime(2025, 1, 7, 12, 0, 0),
             hash: 'testhash',
             size: 100,
@@ -58,7 +56,7 @@ void main() {
             id: 'test-id',
             content: 'test content',
             type: ClipboardItemType.text,
-            category: Category.text,
+            categoryId: 'text',
             timestamp: DateTime(2025, 1, 7, 12, 0, 0),
             hash: 'testhash',
             size: 100,
@@ -87,7 +85,7 @@ void main() {
         id: 'test-id',
         content: 'test content',
         type: ClipboardItemType.text,
-        category: Category.text,
+        categoryId: 'text',
         timestamp: DateTime(2025, 1, 7, 12, 0, 0),
         hash: 'testhash',
         size: 100,
@@ -110,7 +108,7 @@ void main() {
             id: 'test-id',
             content: 'test content',
             type: ClipboardItemType.text,
-            category: Category.text,
+            categoryId: 'text',
             timestamp: DateTime(2025, 1, 7, 12, 0, 0),
             hash: 'testhash',
             size: 100,
@@ -136,7 +134,7 @@ void main() {
             id: 'test-id',
             content: 'test content',
             type: ClipboardItemType.text,
-            category: Category.text,
+            categoryId: 'text',
             timestamp: DateTime(2025, 1, 7, 12, 0, 0),
             hash: 'testhash',
             size: 100,

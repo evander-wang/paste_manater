@@ -18,59 +18,28 @@ class PresetCategoryAdapter extends CategoryBase {
 
   PresetCategoryAdapter(this.category);
 
+  /// 预置分类属性映射
+  static const Map<Category, ({String displayName, IconData icon, Color color})> _categoryProps = {
+    Category.text: (displayName: '文本', icon: Icons.text_snippet, color: Colors.blueGrey),
+    Category.link: (displayName: '链接', icon: Icons.link, color: Colors.blue),
+    Category.code: (displayName: '代码', icon: Icons.code, color: Colors.green),
+    Category.file: (displayName: '文件', icon: Icons.insert_drive_file, color: Colors.orange),
+  };
+
   @override
   String get id => category.name;
 
   @override
-  String get displayName => _getLocalizedDisplayName(category);
+  String get displayName => _categoryProps[category]?.displayName ?? category.name;
 
   @override
-  IconData get icon => _getIconFor(category);
+  IconData get icon => _categoryProps[category]?.icon ?? Icons.text_snippet;
 
   @override
-  Color get color => _getColorFor(category);
+  Color get color => _categoryProps[category]?.color ?? Colors.blueGrey;
 
   @override
   bool get isPreset => true;
-
-  String _getLocalizedDisplayName(Category category) {
-    switch (category) {
-      case Category.text:
-        return '文本';
-      case Category.link:
-        return '链接';
-      case Category.code:
-        return '代码';
-      case Category.file:
-        return '文件';
-    }
-  }
-
-  IconData _getIconFor(Category category) {
-    switch (category) {
-      case Category.text:
-        return Icons.text_snippet;
-      case Category.link:
-        return Icons.link;
-      case Category.code:
-        return Icons.code;
-      case Category.file:
-        return Icons.insert_drive_file;
-    }
-  }
-
-  Color _getColorFor(Category category) {
-    switch (category) {
-      case Category.text:
-        return Colors.blueGrey;
-      case Category.link:
-        return Colors.blue;
-      case Category.code:
-        return Colors.green;
-      case Category.file:
-        return Colors.orange;
-    }
-  }
 }
 
 /// 自定义分类适配器

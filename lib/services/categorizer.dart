@@ -1,5 +1,5 @@
 import '../models/clipboard_item.dart';
-import '../models/category.dart' as models;
+import 'category_detector.dart';
 
 /// 分类器服务
 ///
@@ -7,12 +7,9 @@ import '../models/category.dart' as models;
 class Categorizer {
   /// 分类剪贴板项目并返回分类ID
   ///
-  /// 根据项目内容和类型自动分类
+  /// 根据项目内容自动分类
   static String classifyItem(ClipboardItem item) {
-    final category = models.CategoryClassifier.classify(
-      item.content,
-      _mapItemTypeToDataType(item.type),
-    );
+    final category = CategoryDetector.detect(item.content);
     return category.name;
   }
 
@@ -28,20 +25,8 @@ class Categorizer {
     }).toList();
   }
 
-  /// 映射 ClipboardItemType 到 ClipboardDataType
-  static models.ClipboardDataType _mapItemTypeToDataType(
-      ClipboardItemType type) {
-    switch (type) {
-      case ClipboardItemType.text:
-      case ClipboardItemType.url:
-      case ClipboardItemType.file:
-        return models.ClipboardDataType.text;
-    }
-  }
-
   /// 获取分类统计信息
-  static Map<String, int> getCategoryStats(
-      List<ClipboardItem> items) {
+  static Map<String, int> getCategoryStats(List<ClipboardItem> items) {
     final stats = <String, int>{};
 
     for (final item in items) {
