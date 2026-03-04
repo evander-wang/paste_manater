@@ -6,10 +6,11 @@
 
 - 📋 **自动剪贴板监听** - 自动捕获和保存剪贴板内容
 - 🏷️ **智能分类** - 自动识别文本、链接、代码、文件和图像
+- 🎨 **自定义分类** - 创建个性化分类，自定义图标和颜色
+- 🖱️ **拖拽分类** - 拖拽剪贴板条目到自定义分类
 - 🔍 **强大搜索** - 快速搜索剪贴板历史
 - 📌 **置顶功能** - 将常用内容置顶显示
 - ⌨️ **键盘快捷键** - 使用 Cmd+Shift+V 快速访问
-- 🎯 **常用命令** - 管理和快速复制常用命令
 - 🔒 **隐私保护** - 所有数据仅本地存储,忽略密码管理器
 
 ## 🚀 快速开始
@@ -17,15 +18,15 @@
 ### 环境要求
 
 - macOS 10.15 (Catalina) 或更高版本
-- Flutter 3.24.5 或更高版本
+- Flutter 3.16.0 或更高版本
 - Dart 3.0 或更高版本
 
 ### 安装
 
 1. 克隆仓库:
 ```bash
-git clone https://github.com/your-username/paste.git
-cd paste
+git clone https://github.com/evander-wang/paste_manater.git
+cd paste_manater
 ```
 
 2. 安装依赖:
@@ -56,27 +57,44 @@ open coverage/html/index.html
 
 ```
 lib/
-├── main.dart                      # 应用入口 (183 行)
+├── main.dart                      # 应用入口 (128 行)
 ├── models/                        # 数据模型
+│   ├── auto_capture_rule.dart    # 自动捕获规则
+│   ├── category_base.dart        # 分类基类
+│   ├── category.dart             # 预置分类枚举
 │   ├── clipboard_item.dart       # 剪贴板项目
-│   ├── clipboard_history.dart    # 历史记录
-│   ├── category.dart             # 分类枚举
-│   ├── command.dart              # 命令模型
-│   └── ...
+│   ├── clipboard_history.dart    # 历史记录集合
+│   ├── custom_category.dart      # 自定义分类
+│   ├── hotkey_config.dart        # 热键配置
+│   ├── pin_status.dart           # 置顶状态接口
+│   └── search_query.dart         # 搜索查询
 ├── services/                      # 业务服务
+│   ├── categorizer.dart          # 分类器
+│   ├── category_detector.dart    # 分类检测
+│   ├── category_manager.dart     # 分类管理
+│   ├── category_storage.dart     # 分类存储
 │   ├── clipboard_monitor.dart    # 剪贴板监听
-│   ├── storage_service.dart      # 存储服务
+│   ├── fileWatcher_service.dart  # 文件监听
 │   ├── hotkey_manager.dart       # 热键管理
-│   └── ...
+│   ├── icon_color_pool.dart      # 图标颜色池
+│   ├── pin_service.dart          # 置顶服务
+│   ├── search_service.dart       # 搜索服务
+│   └── storage_service.dart      # 存储服务
 ├── controllers/                   # 控制器
 │   └── clipboard_history_controller.dart
 ├── ui/                           # UI 组件
-│   ├── clipboard_history_tab.dart  # 历史标签页 (473 行)
-│   ├── search_bar_widget.dart     # 搜索栏 (52 行)
-│   └── category_filter_widget.dart # 分类过滤 (107 行)
+│   ├── add_category_dialog.dart      # 添加分类对话框
+│   ├── category_filter_widget.dart   # 分类过滤器 (429 行)
+│   ├── clipboard_context_menu.dart   # 剪贴板上下文菜单
+│   ├── clipboard_history_tab.dart    # 历史标签页 (437 行)
+│   ├── clipboard_list_item_widget.dart # 剪贴板列表项
+│   ├── delete_category_dialog.dart    # 删除分类对话框
+│   ├── empty_state_view.dart          # 空状态视图
+│   ├── move_to_category_dialog.dart   # 移动到分类对话框
+│   ├── search_bar_widget.dart         # 搜索栏 (112 行)
+│   └── theme/                          # 主题配置
 └── widgets/                      # 其他组件
-    ├── monitoring_status_widget.dart
-    └── command_tab.dart
+    └── monitoring_status_widget.dart
 ```
 
 ## 📐 架构原则
@@ -140,8 +158,8 @@ flutter analyze
 
 ## 📧 联系方式
 
-- 项目主页: [GitHub](https://github.com/your-username/paste)
-- 问题反馈: [Issues](https://github.com/your-username/paste/issues)
+- 项目主页: [GitHub](https://github.com/evander-wang/paste_manater)
+- 问题反馈: [Issues](https://github.com/evander-wang/paste_manater/issues)
 
 ---
 
