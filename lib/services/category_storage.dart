@@ -1,8 +1,7 @@
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import '../commons/storage_path_helper.dart';
 
 /// 自定义分类存储服务
 /// 负责从本地文件系统加载和保存自定义分类数据
@@ -13,15 +12,8 @@ class CategoryStorage {
 
   /// 获取自定义分类文件路径
   Future<File> _getCategoriesFile() async {
-    final appSupportDir = await getApplicationSupportDirectory();
-    final pasteManagerDir = Directory('${appSupportDir.path}/paste_manager');
-
-    if (!await pasteManagerDir.exists()) {
-      await pasteManagerDir.create(recursive: true);
-    }
-
-    final file = File('${pasteManagerDir.path}/$_categoriesFileName');
-    return file;
+    final path = await StoragePathHelper.getFilePath('paste_manager', _categoriesFileName);
+    return File(path);
   }
 
   /// 获取备份文件路径

@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:path_provider/path_provider.dart';
 import '../models/clipboard_history.dart';
 import '../models/clipboard_item.dart';
+import '../commons/storage_path_helper.dart';
 
 /// 存储服务
 ///
@@ -15,16 +15,7 @@ class StorageService {
   static const String _appName = 'paste_manager';
 
   /// 存储路径
-  Future<String> get _storagePath async {
-    final appSupportDir = await getApplicationSupportDirectory();
-    final appDir = Directory('${appSupportDir.path}/$_appName');
-
-    if (!await appDir.exists()) {
-      await appDir.create(recursive: true);
-    }
-
-    return '${appDir.path}/$_filename';
-  }
+  Future<String> get _storagePath => StoragePathHelper.getFilePath(_appName, _filename);
 
   /// 加载剪贴板历史
   ///
